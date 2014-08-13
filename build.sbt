@@ -12,3 +12,7 @@ libraryDependencies += "org.scalatest" % "scalatest_2.11" % "2.2.0" % "test"
 
 libraryDependencies += "org.scalafx" %% "scalafx" % "8.0.0-R4"
 
+libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.0.0"
+
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.2"
+

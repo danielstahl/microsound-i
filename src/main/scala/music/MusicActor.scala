@@ -1,6 +1,8 @@
 package music
 
+import com.typesafe.scalalogging.LazyLogging
 import music.MusicActor._
+import music.Patterns._
 
 
 object MusicActor {
@@ -10,13 +12,20 @@ object MusicActor {
    */
   type MusicActorPattern = Pattern[MusicActor, PatternItem[MusicActor]]
   type TimeItemBuilderPattern = Pattern[TimeItemBuilder, PatternItem[TimeItemBuilder]]
+
+  val emptyActor: MusicActorPattern = constant(EmptyActor)
+
+  def withActor(actor: MusicActor)(fn: MusicActor => MusicActor): MusicActor = {
+    fn(actor)
+    actor
+  }
 }
 
 /**
  * Base trait for all actors.
  */
-trait MusicActor {
-  def receive: PartialFunction[MusicEvent, Unit]
+trait MusicActor extends LazyLogging {
+  protected def receive: PartialFunction[MusicEvent, Unit]
 
   private def aroundReceive(event: MusicEvent) = receive.applyOrElse(event, unhandled)
 
@@ -26,25 +35,53 @@ trait MusicActor {
     }
   }
 
+  def listen(actor: MusicActor): MusicActor
+  def listen(l: MusicActorPattern): MusicActor
+
   def tell(event: MusicEvent) {
-    //println(s"${this.getClass.getSimpleName} got message $event")
+    logger.trace(s"$event -> $this")
     aroundReceive(event)
+  }
+}
+
+trait NodeActor extends MusicActor {
+  var listeners: MusicActorPattern
+
+  def listen(l: MusicActorPattern) = {
+    listeners = l
+    this
+  }
+
+  def listen(actor: MusicActor) = {
+    listeners = constant(actor)
+    actor
+  }
+}
+
+trait LeafActor extends MusicActor {
+  override def listen(actor: MusicActor): MusicActor = sys.error(s"$this cant send a events to $actor because it is a LeafActor")
+  override def listen(l: MusicActorPattern): MusicActor = sys.error(s"$this cant send a events to $l because it is a LeafActor")
+}
+
+object EmptyActor extends LeafActor {
+  def receive = {
+    case event: MusicEvent =>
   }
 }
 
 trait MusicEvent
 
-case class DurationEvent(duration: Float) extends MusicEvent
 
-case class PrinterActor() extends MusicActor {
+object PrinterActor extends LeafActor {
   def receive = {
-      case event: MusicEvent => println(event)
+      case event: MusicEvent => logger.info(s"$event")
   }
+  override def toString() = "PrinterActor"
 }
 
 case class TimeItemEvent(timeItem: TimeItem) extends MusicEvent
 
-case class TimeItemBuilderActor(timeItemBuilders: TimeItemBuilderPattern, listeners: MusicActorPattern) extends MusicActor {
+case class TimeItemBuilderActor(timeItemBuilders: TimeItemBuilderPattern, var listeners: MusicActorPattern = emptyActor) extends NodeActor {
 
   def receive = {
     case TimeItemEvent(timeItem) =>
@@ -55,7 +92,7 @@ case class TimeItemBuilderActor(timeItemBuilders: TimeItemBuilderPattern, listen
 
 case class TimeItemsEvent(timeItems: List[TimeItem]) extends MusicEvent
 
-case class TimeItemSplitterActor(listeners: MusicActorPattern) extends MusicActor {
+case class TimeItemSplitterActor(var listeners: MusicActorPattern = emptyActor) extends NodeActor {
   def receive = {
     case TimeItemsEvent(timeItems) =>
       timeItems.foreach {
@@ -65,10 +102,15 @@ case class TimeItemSplitterActor(listeners: MusicActorPattern) extends MusicActo
   }
 }
 
-case class TimeItemsTransformerActor(transformer: TimeItemTransformer, listeners: MusicActorPattern) extends MusicActor {
+case class TimeItemsTransformerActor(transformer: TimeItemTransformer, nrOfTransformations: Int = 1, includeOriginal: Boolean = false, var listeners: MusicActorPattern = emptyActor) extends NodeActor {
   override def receive: PartialFunction[MusicEvent, Unit] = {
-    case TimeItemsEvent(timeItems) =>
-      listeners.takeItem().tell(TimeItemsEvent(transformer.transform(timeItems)))
+    case original @ TimeItemsEvent(timeItems) =>
+      val initial = if(includeOriginal) original.timeItems else transformer.transform(original.timeItems)
+      (0 until nrOfTransformations).foldLeft(initial) {
+        case (items, i) =>
+          listeners.takeItem().tell(TimeItemsEvent(items))
+          transformer.transform(items)
+      }
   }
 }
 

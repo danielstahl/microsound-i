@@ -1,1 +1,1 @@
-This project contains code for a piece with the working title microsound.
+This project contains code for a piece with the working title Microsound I.

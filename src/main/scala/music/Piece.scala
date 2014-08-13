@@ -51,23 +51,38 @@ import music.Patterns._
 object Piece {
   final val totalDuration = TimeItemEvent(TimeItem(0, 60 * 30))
 
-  val printActor: MusicActorPattern = constant(PrinterActor())
+  val printActor: MusicActorPattern = constant(PrinterActor)
 
   val structure: TimeItemBuilderPattern =
     constant(relativeScaledTime((2, timeAtom), (8, timeAtom), (13, timeAtom), (5, timeAtom), (3, timeAtom)))
 
-  val partOne = TimeItemBuilderActor(constant(PulseTimeBuilder(2, timeAtom)),
-    constant(TimeItemsTransformerActor(ChainedTimeItemTransformer(PulseTransformer(5)), printActor)))
+  def buildPart(pulses: Int, repeats: Int, phases: Int, phase: Float) = {
+    withActor(TimeItemBuilderActor(constant(PulseTimeBuilder(pulses, timeAtom)))) {
+      _.listen(TimeItemsTransformerActor(ChainedTimeItemTransformer(PulseTransformer(repeats))))
+        .listen(TimeItemsTransformerActor(ChainedTimeItemTransformer(ScaleTransformer(phase)), nrOfTransformations = phases, includeOriginal = true))
+        .listen(PrinterActor)
+    }
+  }
 
 
-  val pulses: MusicActorPattern = line(constant(partOne), printActor)
+  val pulses: MusicActorPattern =
+    line(
+      constant(buildPart(pulses = 2, repeats = 5, phases = 5, phase = 1.01f)),
+      constant(buildPart(pulses = 13, repeats = 2, phases = 3, phase = 1.01f)),
+      constant(buildPart(pulses = 8, repeats = 3, phases = 3, phase = 1.01f)),
+      constant(buildPart(pulses = 3, repeats = 5, phases = 3, phase = 1.01f)),
+      constant(buildPart(pulses = 5, repeats = 8, phases = 3, phase = 1.01f)),
+      printActor)
 
-  val splitterActor: MusicActorPattern = constant(TimeItemSplitterActor(pulses))
+  val structureActor = withActor(TimeItemBuilderActor(structure)) {
+    _.listen(TimeItemSplitterActor())
+      .listen(pulses)
+  }
 
-  val structureActor = TimeItemBuilderActor(structure, splitterActor)
 
-
-
+  def main(args: Array[String]) {
+    structureActor.tell(totalDuration)
+  }
 
   /*
   final val totalDuration = 60 * 3
@@ -93,6 +108,7 @@ object Piece {
       atom(pulsePhase(pulseScaledTime(8), repeats = 3, phases = 3, phase = 0.01f)),
       atom(pulsePhase(pulseScaledTime(3), repeats = 5, phases = 3, phase = 0.01f)),
       atom(pulsePhase(pulseScaledTime(5), repeats = 8, phases = 3, phase = 0.01f)))
+
 
   //TODO reimplement with pulseCycle as pattern
   def structureWithPulse(totalDuration: Float) = {
@@ -141,8 +157,6 @@ object Piece {
 
   }
   */
-
-
 
 
 }

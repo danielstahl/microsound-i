@@ -13,9 +13,6 @@ object TimeItem {
 
   def relativeScaledTime(parts: (Int, TimeItemBuilder)*) =
     RelativeTimeBuilder(parts.toList)
-
-  def pulsePhase(scaledTime: TimeItemBuilder, repeats: Int = 1, phases: Int = 1, phase: Float = 1) =
-    PulsePhase(scaledTime, repeats, phases, phase)
 }
 
 trait TimeItemBuilder {
@@ -107,21 +104,3 @@ case class PatternTimeItemTransformer(pattern: Pattern[TimeItemTransformer, Patt
   }
 }
 
-@deprecated
-case class PulsePhase(scaledTime: TimeItemBuilder, repeats: Int = 1, phases: Int = 1, phase: Float = 1) {
-  def repeat(startTime: Float, totalDuration: Float): List[List[TimeItem]] = {
-    var currentDuration = totalDuration
-    (1 to phases).map {_ =>
-        var currentStartTime = startTime
-        val tempPhase = (1 to repeats).flatMap {_ =>
-            val tempRepeat = scaledTime.build(currentStartTime, currentDuration)
-            currentStartTime += currentDuration
-            tempRepeat
-        }
-        currentDuration = currentDuration + (currentDuration * phase)
-        tempPhase.toList
-    }.toList
-
-
-  }.toList
-}

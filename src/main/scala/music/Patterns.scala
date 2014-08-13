@@ -6,7 +6,7 @@ trait PatternItem[+A] {
   def takeItem(): A
 }
 
-case class AtomItem[+A](atom: A) extends PatternItem[A] {
+case class AtomItem[A](atom: A) extends PatternItem[A] {
   def takeItem(): A = atom
 }
 
