@@ -16,3 +16,4 @@ libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.0.0"
 
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.2"
 
+org.scalastyle.sbt.ScalastylePlugin.Settings
