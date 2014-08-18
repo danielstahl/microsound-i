@@ -48,7 +48,7 @@ case class AttackArgument(start: Float = 0, end: Float = 0) extends RangeFloatAr
 case class AttackArgument2(attackType: Either[String, (Float, Float)]) extends InstrumentArgument {
   def arguments: Seq[Object] = {
     attackType match {
-      case Left(attackType) => Array("attackType", attackType)
+      case Left(theType) => Array("attackType", theType)
       case Right((start, end)) => Array("attackType", Array(start, end))
     }
 
@@ -83,29 +83,29 @@ case class BaseArgument(synthId: Integer = -1, addAction: Integer = 0, targetNod
 
 }
 
-abstract class InstrumentName extends InstrumentArgument {
+trait InstrumentName extends InstrumentArgument {
   def instrumentName: String
 
   def arguments: Seq[Object] = Array(instrumentName)
 
 }
 
-case class InvertedSpektrum4() extends InstrumentName {
+object InvertedSpektrum4 extends InstrumentName {
   def instrumentName: String = "invertedSpektrum42"
 }
 
-case class InvertedSpektrum6() extends InstrumentName {
+object InvertedSpektrum6 extends InstrumentName {
   def instrumentName: String = "invertedSpektrum63"
 }
 
-case class Spektrum() extends InstrumentName {
+object Spektrum extends InstrumentName {
   def instrumentName: String = "spektrum42"
 }
 
-case class NoiseGrain() extends InstrumentName {
+object NoiseGrain extends InstrumentName {
   def instrumentName: String = "noiseGrain"
 }
 
-case class NoiseGrain2() extends InstrumentName {
+object NoiseGrain2 extends InstrumentName {
   def instrumentName: String = "noiseGrain2"
 }

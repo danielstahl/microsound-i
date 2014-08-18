@@ -49,15 +49,17 @@ import music.Patterns._
  */
 
 object Piece {
-  final val totalDuration = TimeItemEvent(TimeItem(0, 60 * 30))
+  final val totalDuration = TimeItemEvent(TimeItem(0, 60 * 30, 60 * 3, 0.5f))
 
   val printActor: MusicActorPattern = constant(PrinterActor)
 
+  val defaultDuration: Pattern[(Float, Float), PatternItem[(Float, Float)]] = constant(1.0f, 0.5f)
+
   val structure: TimeItemBuilderPattern =
-    constant(relativeScaledTime((2, timeAtom), (8, timeAtom), (13, timeAtom), (5, timeAtom), (3, timeAtom)))
+    constant(relativeScaledTime((2, timeAtom(defaultDuration)), (8, timeAtom(defaultDuration)), (13, timeAtom(defaultDuration)), (5, timeAtom(defaultDuration)), (3, timeAtom(defaultDuration))))
 
   def buildPart(pulses: Int, repeats: Int, phases: Int, phase: Float) = {
-    withActor(TimeItemBuilderActor(constant(PulseTimeBuilder(pulses, timeAtom)))) {
+    withActor(TimeItemBuilderActor(constant(PulseTimeBuilder(pulses, timeAtom(defaultDuration))))) {
       _.listen(TimeItemsTransformerActor(ChainedTimeItemTransformer(PulseTransformer(repeats))))
         .listen(TimeItemsTransformerActor(ChainedTimeItemTransformer(ScaleTransformer(phase)), nrOfTransformations = phases, includeOriginal = true))
         .listen(PrinterActor)

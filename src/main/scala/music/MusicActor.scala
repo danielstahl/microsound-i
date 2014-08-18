@@ -76,7 +76,7 @@ object PrinterActor extends LeafActor {
   def receive = {
       case event: MusicEvent => logger.info(s"$event")
   }
-  override def toString() = "PrinterActor"
+  override def toString = "PrinterActor"
 }
 
 case class TimeItemEvent(timeItem: TimeItem) extends MusicEvent
@@ -85,7 +85,7 @@ case class TimeItemBuilderActor(timeItemBuilders: TimeItemBuilderPattern, var li
 
   def receive = {
     case TimeItemEvent(timeItem) =>
-      val timeItems = timeItemBuilders.takeItem().build(timeItem.start, timeItem.duration)
+      val timeItems = timeItemBuilders.takeItem().build(timeItem.start, timeItem.delta)
       listeners.takeItem().tell(TimeItemsEvent(timeItems))
   }
 }

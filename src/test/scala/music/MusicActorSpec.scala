@@ -3,7 +3,7 @@ package music
 import org.scalatest.FlatSpec
 
 /**
- * Created by danielstahl on 2014-07-20.
+ * Tests for MusicActor
  */
 class MusicActorSpec extends FlatSpec {
 

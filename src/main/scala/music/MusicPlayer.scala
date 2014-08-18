@@ -9,7 +9,7 @@ import java.util.Date
 import com.illposed.osc
 
 case class MusicPlayer() {
-  val sender: OSCPortOut = new OSCPortOut(InetAddress.getLocalHost(), 57110)
+  val sender: OSCPortOut = new OSCPortOut(InetAddress.getLocalHost, 57110)
 
   val clock: PlayerClock = PlayerClock()
 

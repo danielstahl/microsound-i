@@ -21,14 +21,14 @@ object LongNote {
   def apply(noteName: NoteName): LongNote = longNotes(noteName)
   
 	private val longNotes: Map[NoteName, LongNote] = Map(
-    noise1 -> LongNote(InvertedSpektrum4(), Seq(
+    noise1 -> LongNote(InvertedSpektrum4, Seq(
       FrequenciesArgument(
         Harmony(HARMON).octave(2).chord(1, 7, 15, 18),
         Harmony(HARMON).octave(2).chord(1, 6, 12, 19)),
       BandwithsArgument(Bandwith(2, 2, 2, 2), Bandwith(0, 0, 0, 0)),
       AttackArgument(0, 0))),
 
-    noise2 -> LongNote(InvertedSpektrum6(), Seq(
+    noise2 -> LongNote(InvertedSpektrum6, Seq(
       FrequenciesArgument(
         Harmony(HARMON).octave(5).chord(0, 1, 2, 3, 4, 5),
         Harmony(HARMON).octave(5).chord(0, 1, 2, 3, 4, 5)),
@@ -36,55 +36,55 @@ object LongNote {
       AttackArgument(0, 0))),
 
     // Isnt working  
-    noise3 -> LongNote(InvertedSpektrum6(), Seq(
+    noise3 -> LongNote(InvertedSpektrum6, Seq(
       FrequenciesArgument(
         Harmony(HARMON).octave(7).chord(0, 1, 2, 3, 4, 5),
         Harmony(HARMON).octave(7).chord(0, 1, 2, 3, 4, 5)),
       BandwithsArgument(Bandwith(2, 2, 2, 2, 2, 2), Bandwith(2, 2, 2, 2, 2, 2)),
       AttackArgument(0, 0))),
 
-    noise4 -> LongNote(InvertedSpektrum6(), Seq(
+    noise4 -> LongNote(InvertedSpektrum6, Seq(
       FrequenciesArgument(
         Harmony(HARMON).octave(5).chord(0, 6, 8, 10, 12, 19),
         Harmony(HARMON).octave(5).chord(0, 6, 8, 10, 12, 19)),
       BandwithsArgument(Bandwith(5, 5, 5, 5, 5, 5), Bandwith(5, 5, 5, 5, 5, 5)),
       AttackArgument(0, 0))),
-    noise5 -> LongNote(InvertedSpektrum6(), Seq(
+    noise5 -> LongNote(InvertedSpektrum6, Seq(
       FrequenciesArgument(
         Harmony(HARMON).octave(6).chord(0, 6, 8, 10, 12, 19),
         Harmony(HARMON).octave(6).chord(0, 6, 8, 10, 12, 19)),
       BandwithsArgument(Bandwith(2, 2, 2, 2, 2, 2), Bandwith(2, 2, 2, 2, 2, 2)),
       AttackArgument(0, 0))),
 
-    harm1 -> LongNote(Spektrum(), Seq(
+    harm1 -> LongNote(Spektrum, Seq(
       FrequenciesArgument(
         Harmony(HARMON).octave(6).chord(1, 7, 15, 18),
         Harmony(HARMON).octave(6).chord(1, 6, 17, 19)),
       BandwithsArgument(Bandwith(1, 1, 1, 1), Bandwith(3, 3, 3, 3)),
       AttackArgument(0, 0))),
 
-    harm2 -> LongNote(Spektrum(), Seq(
+    harm2 -> LongNote(Spektrum, Seq(
       FrequenciesArgument(
         Harmony(HARMON).octave(4).chord(1, 5, 10, 12),
         Harmony(HARMON).octave(4).chord(1, 3, 11, 18)),
       BandwithsArgument(Bandwith(1, 1, 1, 1), Bandwith(3, 3, 3, 3)),
       AttackArgument(0, 0))),
 
-    harm3 -> LongNote(Spektrum(), Seq(
+    harm3 -> LongNote(Spektrum, Seq(
       FrequenciesArgument(
         Harmony(HARMON).octave(8).chord(1, 2, 3, 4),
         Harmony(HARMON).octave(8).chord(0, 3, 5, 7)),
       BandwithsArgument(Bandwith(2, 2, 2, 2), Bandwith(3, 3, 3, 3)),
       AttackArgument(0, 0))),
 
-    harm4 -> LongNote(Spektrum(), Seq(
+    harm4 -> LongNote(Spektrum, Seq(
       FrequenciesArgument(
         Harmony(HARMON).octave(9).chord(0, 3, 5, 7),
         Harmony(HARMON).octave(9).chord(1, 2, 3, 4)),
       BandwithsArgument(Bandwith(2, 2, 2, 2), Bandwith(1, 1, 1, 1)),
       AttackArgument(0, 0))),
 
-    harm5 -> LongNote(Spektrum(), Seq(
+    harm5 -> LongNote(Spektrum, Seq(
       FrequenciesArgument(
         Harmony(HARMON).octave(3).chord(0, 7, 15, 19),
         Harmony(HARMON).octave(3).chord(1, 6, 8, 9)),

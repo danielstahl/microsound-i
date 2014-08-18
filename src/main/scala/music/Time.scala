@@ -164,7 +164,7 @@ case class SimplePulse(bases: Seq[PulseTime], notes: Seq[LongNote], pans: Seq[Pa
     val baseAmp = AmpArgument(0.9f).arguments
 
     var tempTime = absoluteTime
-    val noiseGrain = NoiseGrain2()
+    val noiseGrain = NoiseGrain2
     ((bases, notes, pans).zipped.toSeq, pulseParts).zipped.foreach {
       case ((baseValue, noteValue, panValue), pulsePart) =>
         player.sendNew(noteValue.instrument.arguments ++
@@ -402,7 +402,7 @@ sealed case class PartPattern(patterns: Seq[(Float, Duration, Float, AttackCurve
     val layers = Layers(1)
     layers.play()
     val track = 0
-    val noiseGrain = NoiseGrain2()
+    val noiseGrain = NoiseGrain2
 
     val baseOutput = OutbusArgument(16 + track).arguments
     val patternInput = InbusArgument(16 + track).arguments
