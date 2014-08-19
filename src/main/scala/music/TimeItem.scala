@@ -1,9 +1,9 @@
 package music
 
-case class TimeItem(start: Float, delta: Float, duration: Float, attack: Float)
+case class TimeItem(start: Float, delta: Float, duration: Float)
 
 object TimeItem {
-  def timeAtom(pattern: Pattern[(Float, Float), PatternItem[(Float, Float)]]): TimeAtomBuilder = TimeAtomBuilder(pattern)
+  def timeAtom = TimeAtomBuilder
 
   def patternScaledTime(pattern: Pattern[TimeItemBuilder, PatternItem[TimeItemBuilder]]) =
     PatternTimeItemBuilder(pattern)
@@ -11,53 +11,54 @@ object TimeItem {
   def pulseScaledTime(steps: Int, scaledTime: TimeItemBuilder) =
     PulseTimeBuilder(steps, scaledTime)
 
-  def relativeScaledTime(parts: (Int, TimeItemBuilder)*) =
+  def relativeScaledTime(parts: (Int, Int, TimeItemBuilder)*) =
     RelativeTimeBuilder(parts.toList)
 }
 
-case class DeltaTime(delta: Float, duration: Float, attack: Float)
+case class DeltaTime(delta: Float, duration: Float)
 
 trait TimeItemBuilder {
-  def build(startTime: Float, totalDuration: Float): List[TimeItem] = {
-    buildAbsoluteTime(startTime, buildRelativeTime(totalDuration))
+  def build(startTime: Float, totalDelta: Float, totalDuration: Float): List[TimeItem] = {
+    buildAbsoluteTime(startTime, buildRelativeTime(totalDelta, totalDuration))
   }
 
-  def buildRelativeTime(totalDuration: Float): List[DeltaTime]
+  def buildRelativeTime(totalDelta: Float, totalDuration: Float): List[DeltaTime]
 
   protected def buildAbsoluteTime(startTime: Float, parts: List[DeltaTime]): List[TimeItem] = {
     var tempTime = startTime
     parts.map {
       deltaTime =>
-        val item = TimeItem(tempTime, deltaTime.delta, deltaTime.duration, deltaTime.attack)
+        val item = TimeItem(tempTime, deltaTime.delta, deltaTime.duration)
         tempTime = tempTime + deltaTime.delta
         item
     }
   }
 }
 
-case class TimeAtomBuilder(pattern: Pattern[(Float, Float), PatternItem[(Float, Float)]]) extends TimeItemBuilder {
-  override def buildRelativeTime(totalDuration: Float): List[DeltaTime] = {
-    val (deltaDuration, attack) = pattern.takeItem()
-    List(DeltaTime(totalDuration, totalDuration * deltaDuration, attack))
+object TimeAtomBuilder extends TimeItemBuilder {
+  override def buildRelativeTime(totalDelta: Float, totalDuration: Float): List[DeltaTime] = {
+    List(DeltaTime(totalDelta, totalDuration))
   }
 }
 
 case class PatternTimeItemBuilder(pattern: Pattern[TimeItemBuilder, PatternItem[TimeItemBuilder]]) extends TimeItemBuilder {
-  override def buildRelativeTime(totalDuration: Float): List[DeltaTime] = pattern.takeItem().buildRelativeTime(totalDuration)
+  override def buildRelativeTime(totalDelta: Float, totalDuration: Float): List[DeltaTime] = pattern.takeItem().buildRelativeTime(totalDelta, totalDuration)
 }
 
 case class PulseTimeBuilder(steps: Int, scaledTime: TimeItemBuilder) extends TimeItemBuilder {
-  def buildRelativeTime(totalDuration: Float): List[DeltaTime] = {
-    val fact = totalDuration / steps.toFloat
-    (1 to steps).map(i => scaledTime.buildRelativeTime(fact)).flatten.toList
+  def buildRelativeTime(totalDelta: Float, totalDuration: Float): List[DeltaTime] = {
+    val deltaFact = totalDelta / steps.toFloat
+    val durationFact = totalDuration / steps.toFloat
+    (1 to steps).map(i => scaledTime.buildRelativeTime(deltaFact, durationFact)).flatten.toList
   }
 }
 
-case class RelativeTimeBuilder(parts: List[(Int, TimeItemBuilder)]) extends TimeItemBuilder {
-  def buildRelativeTime(totalDuration: Float): List[DeltaTime] = {
-    val fact = totalDuration / parts.map(_._1).sum.toFloat
+case class RelativeTimeBuilder(parts: List[(Int, Int, TimeItemBuilder)]) extends TimeItemBuilder {
+  def buildRelativeTime(totalDelta: Float, totalDuration: Float): List[DeltaTime] = {
+    val deltaFact = totalDelta / parts.map(_._1).sum.toFloat
+    val durationFact = totalDuration / parts.map(_._2).sum.toFloat
     parts.map {
-      case (part, scaledTime) => scaledTime.buildRelativeTime(part * fact)
+      case (deltaPart, durationPart, scaledTime) => scaledTime.buildRelativeTime(deltaPart * deltaFact, durationPart * durationFact)
     }.flatten.toList
   }
 }
@@ -75,13 +76,13 @@ case class PulseTransformer(repeats: Int = 1) extends TimeItemTransformer {
       i =>
        val startTime = i * totalDelta
        items.map {
-         case TimeItem(start, delta, duration, attack) => TimeItem(startTime + start, delta, duration, attack)
+         case TimeItem(start, delta, duration) => TimeItem(startTime + start, delta, duration)
        }
     }
   }
 }
 
-case class ScaleTransformer(deltaFactor: Float = 1, durationFactor: Float = 1, attackFactor: Float = 1) extends TimeItemTransformer {
+case class ScaleTransformer(deltaFactor: Float = 1, durationFactor: Float = 1) extends TimeItemTransformer {
   def transform(items: List[TimeItem]): List[TimeItem] = {
     val startTime = items.head.start
 
@@ -89,8 +90,7 @@ case class ScaleTransformer(deltaFactor: Float = 1, durationFactor: Float = 1, a
       case ((nextStart, result), timeItem) => {
         val newDelta = timeItem.delta * deltaFactor
         val newDuration = timeItem.duration * durationFactor
-        val newAttack = timeItem.attack * attackFactor
-        (nextStart + newDelta, result ::: List(TimeItem(nextStart, newDelta, newDuration, newAttack)))
+        (nextStart + newDelta, result ::: List(TimeItem(nextStart, newDelta, newDuration)))
       }
     }
     newItems._2

@@ -46,22 +46,34 @@ import music.Patterns._
  *
  * Vi skulle kunna göra mottagning och skickning typad i implementationen så att man
  * säger vilken typ man tar emot och vilken man skickar.
+ *
+ *
+ *
+ *
+ * TimeItem
+ * startTime, delta, duration
+ *
+ * Gesture
+ * attackTime, attackType
+ *
+ * Frequency (Sound)
+ * frequencies, bws, instrumentName
+ *
+ *
  */
 
 object Piece {
-  final val totalDuration = TimeItemEvent(TimeItem(0, 60 * 30, 60 * 3, 0.5f))
+  final val totalDuration = TimeItemEvent(TimeItem(0, 60 * 30, 60 * 30))
 
   val printActor: MusicActorPattern = constant(PrinterActor)
 
-  val defaultDuration: Pattern[(Float, Float), PatternItem[(Float, Float)]] = constant(1.0f, 0.5f)
-
   val structure: TimeItemBuilderPattern =
-    constant(relativeScaledTime((2, timeAtom(defaultDuration)), (8, timeAtom(defaultDuration)), (13, timeAtom(defaultDuration)), (5, timeAtom(defaultDuration)), (3, timeAtom(defaultDuration))))
+    constant(relativeScaledTime((2, 2, timeAtom), (8, 8, timeAtom), (13, 13, timeAtom), (5, 5, timeAtom), (3, 3, timeAtom)))
 
-  def buildPart(pulses: Int, repeats: Int, phases: Int, phase: Float) = {
-    withActor(TimeItemBuilderActor(constant(PulseTimeBuilder(pulses, timeAtom(defaultDuration))))) {
+  def buildPart(pulses: Int, repeats: Int, phases: Int, deltaPhase: Float, durationPhase: Float) = {
+    withActor(TimeItemBuilderActor(constant(PulseTimeBuilder(pulses, timeAtom)))) {
       _.listen(TimeItemsTransformerActor(ChainedTimeItemTransformer(PulseTransformer(repeats))))
-        .listen(TimeItemsTransformerActor(ChainedTimeItemTransformer(ScaleTransformer(phase)), nrOfTransformations = phases, includeOriginal = true))
+        .listen(TimeItemsTransformerActor(ChainedTimeItemTransformer(ScaleTransformer(deltaFactor = deltaPhase, durationFactor = durationPhase)), nrOfTransformations = phases, includeOriginal = true))
         .listen(PrinterActor)
     }
   }
@@ -69,11 +81,11 @@ object Piece {
 
   val pulses: MusicActorPattern =
     line(
-      constant(buildPart(pulses = 2, repeats = 5, phases = 5, phase = 1.01f)),
-      constant(buildPart(pulses = 13, repeats = 2, phases = 3, phase = 1.01f)),
-      constant(buildPart(pulses = 8, repeats = 3, phases = 3, phase = 1.01f)),
-      constant(buildPart(pulses = 3, repeats = 5, phases = 3, phase = 1.01f)),
-      constant(buildPart(pulses = 5, repeats = 8, phases = 3, phase = 1.01f)),
+      constant(buildPart(pulses = 2, repeats = 5, phases = 5, deltaPhase = 1.01f, durationPhase = 0.99f)),
+      constant(buildPart(pulses = 13, repeats = 2, phases = 3, deltaPhase = 1.01f, durationPhase = 0.99f)),
+      constant(buildPart(pulses = 8, repeats = 3, phases = 3, deltaPhase = 1.01f, durationPhase = 0.99f)),
+      constant(buildPart(pulses = 3, repeats = 5, phases = 3, deltaPhase = 1.01f, durationPhase = 0.99f)),
+      constant(buildPart(pulses = 5, repeats = 8, phases = 3, deltaPhase = 1.01f, durationPhase = 0.99f)),
       printActor)
 
   val structureActor = withActor(TimeItemBuilderActor(structure)) {

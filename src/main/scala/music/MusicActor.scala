@@ -85,7 +85,7 @@ case class TimeItemBuilderActor(timeItemBuilders: TimeItemBuilderPattern, var li
 
   def receive = {
     case TimeItemEvent(timeItem) =>
-      val timeItems = timeItemBuilders.takeItem().build(timeItem.start, timeItem.delta)
+      val timeItems = timeItemBuilders.takeItem().build(timeItem.start, timeItem.delta, timeItem.duration)
       listeners.takeItem().tell(TimeItemsEvent(timeItems))
   }
 }
