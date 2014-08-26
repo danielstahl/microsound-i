@@ -69,7 +69,9 @@ object EmptyActor extends LeafActor {
   }
 }
 
-trait MusicEvent
+trait MusicEvent {
+  var channel = 0
+}
 
 
 object PrinterActor extends LeafActor {

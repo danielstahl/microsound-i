@@ -12,8 +12,8 @@ class FrequencySpec extends FlatSpec {
 
     val pattern: Pattern[String, PatternItem[String]] = line(atom("two"), atom("one"))
     val chords = Map(
-      "one" -> FrequencyFilterChord(Seq(FrequencyFilter(100f, 100f, 0.01f, 0.01f, InvertedSpektrum4))),
-      "two" -> FrequencyFilterChord(Seq(FrequencyFilter(200f, 200f, 0.02f, 0.02f, InvertedSpektrum4)))
+      "one" -> FrequencyFilterChord(Seq(FrequencyFilter(100f, 100f, 0.01f, 0.01f)), InvertedSpektrum4),
+      "two" -> FrequencyFilterChord(Seq(FrequencyFilter(200f, 200f, 0.02f, 0.02f)), InvertedSpektrum4)
     )
 
     val builder = PatternFrequencyFilterBuilder(pattern, chords)
@@ -24,8 +24,8 @@ class FrequencySpec extends FlatSpec {
   it should "work with enums as keys" in {
     val pattern: Pattern[NoteName, PatternItem[NoteName]] = line(atom(noise2), atom(noise1))
     val chords = Map(
-      noise1 -> FrequencyFilterChord(Seq(FrequencyFilter(100f, 100f, 0.01f, 0.01f, InvertedSpektrum4))),
-      noise2 -> FrequencyFilterChord(Seq(FrequencyFilter(200f, 200f, 0.02f, 0.02f, InvertedSpektrum4)))
+      noise1 -> FrequencyFilterChord(Seq(FrequencyFilter(100f, 100f, 0.01f, 0.01f)), InvertedSpektrum4),
+      noise2 -> FrequencyFilterChord(Seq(FrequencyFilter(200f, 200f, 0.02f, 0.02f)), InvertedSpektrum4)
     )
 
     val builder = PatternFrequencyFilterBuilder(pattern, chords)

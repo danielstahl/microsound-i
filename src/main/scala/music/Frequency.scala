@@ -1,9 +1,9 @@
 package music
 
 
-case class FrequencyFilter(startFreq: Float, endFreq: Float, startBws: Float, endBws: Float, instrument: InstrumentName)
+case class FrequencyFilter(startFreq: Float, endFreq: Float, startBws: Float, endBws: Float)
 
-case class FrequencyFilterChord(filters: Seq[FrequencyFilter])
+case class FrequencyFilterChord(filters: Seq[FrequencyFilter], instrument: InstrumentName)
 
 trait FrequencyFilterChordBuilder {
   def buildFrequencyChords(size: Int): List[FrequencyFilterChord]

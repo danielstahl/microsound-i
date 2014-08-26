@@ -63,18 +63,22 @@ import music.Patterns._
  */
 
 object Piece {
-  final val totalDuration = TimeItemEvent(TimeItem(0, 60 * 30, 60 * 30))
+  final val totalDuration = TimeItemEvent(TimeItem(0, 60 * 4, 60 * 4))
 
   val printActor: MusicActorPattern = constant(PrinterActor)
 
   val structure: TimeItemBuilderPattern =
     constant(relativeScaledTime((2, 2, timeAtom), (8, 8, timeAtom), (13, 13, timeAtom), (5, 5, timeAtom), (3, 3, timeAtom)))
 
+  val plotter = DataPlotterFx()
+  val plotterActor = TimeItemPlotterActor(plotter)
+
   def buildPart(pulses: Int, repeats: Int, phases: Int, deltaPhase: Float, durationPhase: Float) = {
     withActor(TimeItemBuilderActor(constant(PulseTimeBuilder(pulses, timeAtom)))) {
       _.listen(TimeItemsTransformerActor(ChainedTimeItemTransformer(PulseTransformer(repeats))))
         .listen(TimeItemsTransformerActor(ChainedTimeItemTransformer(ScaleTransformer(deltaFactor = deltaPhase, durationFactor = durationPhase)), nrOfTransformations = phases, includeOriginal = true))
-        .listen(PrinterActor)
+        //.listen(PrinterActor)
+        .listen(plotterActor)
     }
   }
 
@@ -95,6 +99,7 @@ object Piece {
 
 
   def main(args: Array[String]) {
+    plotter.show()
     structureActor.tell(totalDuration)
   }
 
