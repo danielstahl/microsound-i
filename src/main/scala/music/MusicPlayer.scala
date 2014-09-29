@@ -26,10 +26,14 @@ case class MusicPlayer() {
     )
   }
 
-  def sendNew(arguments: Seq[Object], deltaTime: Long)(implicit player: MusicPlayer) = {
+  def startPlay(): Unit = {
+    clock.reset()
+  }
+
+  def sendNew(arguments: Seq[Object], deltaTime: Long) = {
     //println(s"Sending message at $deltaTime with args $arguments")
     val theMessages: Array[Object] = arguments.toArray
-    sendBundle(Array(new OSCMessage("/s_new", theMessages)), deltaTime)(player)
+    sendBundle(Array(new OSCMessage("/s_new", theMessages)), deltaTime)/*(player)*/
   }
 
   /**
@@ -57,10 +61,10 @@ case class MusicPlayer() {
     new OSCMessage("/g_freeAll", theArguments)
   }
 
-  def sendBundle(messages: Array[OSCPacket], deltaTime: Long)(implicit player: MusicPlayer) = {
-    println(s"sending ${messages.toList} at $deltaTime")
-    val theTime = new Date(player.clock.start + deltaTime)
-    player.sender.send(new OSCBundle(messages, theTime))
+  def sendBundle(messages: Array[OSCPacket], deltaTime: Long) = {
+    //println(s"sending ${messages.toList} at $deltaTime")
+    val theTime = new Date(clock.start + deltaTime)
+    sender.send(new OSCBundle(messages, theTime))
   }
 }
 

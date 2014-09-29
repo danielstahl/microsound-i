@@ -144,7 +144,7 @@ Group.head(1007); //1008
 		endBws = #[0.000001,0.000001,0.000001,0.000001,0.000001,0.000001],
 		attackTime = 0.5, attackCurve = 0, decayCurve = 0, startPan = 0, endPan = 0;
 		var env, noise, filt, freqenv;
-		env = EnvGen.kr(Env([0,amp,0],[(attackTime * dur),
+		env = EnvGen.kr(Env([0.00001,amp,0.00001],[(attackTime * dur),
 			((1 - attackTime) * dur)], [attackCurve, decayCurve]), doneAction:2);
 		noise = WhiteNoise.ar(env);
 		filt = noise;

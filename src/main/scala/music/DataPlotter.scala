@@ -1,7 +1,9 @@
 package music
 
 import java.awt.{Font, RenderingHints}
+import javafx.application.Application
 import javafx.embed.swing.JFXPanel
+import javax.swing.SwingUtilities
 
 import scala.swing._
 import scala.swing.event.Event
@@ -20,17 +22,24 @@ case class DataPlotterFx() {
   var gc: GraphicsContext = null
 
   def show(): Unit = {
+    Application.setUserAgentStylesheet(Application.STYLESHEET_MODENA)
     Platform.runLater {
+
       // Create dialog using `Stage` (not `PrimaryStage`)
       val dialogStage = new Stage {
+
         minHeight = 700
         minWidth = 1000
         scene = new Scene {
+          println("made a new Scene")
           root = new BorderPane {
+            println("made a new bordepane")
             padding = Insets(25)
             center = new control.ScrollPane {
+              println("made a scrollpane")
               content = new Canvas(10000, 2000) {
                 gc = graphicsContext2D
+                println(s"Set gc to $gc")
                 gc.font = scalafx.scene.text.Font(9)
                 gc.setLineWidth(.2)
               }
@@ -44,6 +53,8 @@ case class DataPlotterFx() {
     }
   }
 
+
+
   def plot(func: (GraphicsContext) => Unit): Unit = {
     Platform.runLater {
       func(gc)
@@ -51,30 +62,7 @@ case class DataPlotterFx() {
   }
 }
 
-case class TimeItemPlotterActor(dataPlotter: DataPlotterFx) extends LeafActor {
-  var channel = 0
-  def receive = {
-    case event @ TimeItemsEvent(timeItems) =>
-      event.channel = channel
-      channel = channel + 1
-      timeItems.foreach {
-        timeItem =>
-          dataPlotter.plot {
-            gc =>
-              val ypos = 20d + (event.channel * 20d)
-              val startPos = xpos(timeItem.start)
-              val durationEndPos = xpos(timeItem.start + timeItem.duration)
-              gc.strokeLine(startPos.toDouble, ypos, durationEndPos.toDouble, ypos)
-              gc.strokeLine(startPos.toDouble, ypos, startPos.toDouble, ypos - 10)
-              val timeString = f"${timeItem.start}%.2f"
-              gc.strokeText(timeString, startPos.toDouble + 5, ypos - 5)
 
-          }
-      }
-  }
-
-  def xpos(xtime: Float): Double = 10 + (xtime * 10).round
-}
 
 
 

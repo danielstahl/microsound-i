@@ -2,7 +2,7 @@ package music
 
 import com.typesafe.scalalogging.LazyLogging
 import music.MusicActor._
-import music.Patterns._
+import music.Pattern._
 
 
 object MusicActor {
@@ -10,8 +10,7 @@ object MusicActor {
   /**
    * [PIA <: PatternItem[MusicActor], MusicActorPattern <% Pattern[MusicActor, PIA]]
    */
-  type MusicActorPattern = Pattern[MusicActor, PatternItem[MusicActor]]
-  type TimeItemBuilderPattern = Pattern[TimeItemBuilder, PatternItem[TimeItemBuilder]]
+  type MusicActorPattern = PatternType[MusicActor]
 
   val emptyActor: MusicActorPattern = constant(EmptyActor)
 
@@ -81,40 +80,7 @@ object PrinterActor extends LeafActor {
   override def toString = "PrinterActor"
 }
 
-case class TimeItemEvent(timeItem: TimeItem) extends MusicEvent
 
-case class TimeItemBuilderActor(timeItemBuilders: TimeItemBuilderPattern, var listeners: MusicActorPattern = emptyActor) extends NodeActor {
-
-  def receive = {
-    case TimeItemEvent(timeItem) =>
-      val timeItems = timeItemBuilders.takeItem().build(timeItem.start, timeItem.delta, timeItem.duration)
-      listeners.takeItem().tell(TimeItemsEvent(timeItems))
-  }
-}
-
-case class TimeItemsEvent(timeItems: List[TimeItem]) extends MusicEvent
-
-case class TimeItemSplitterActor(var listeners: MusicActorPattern = emptyActor) extends NodeActor {
-  def receive = {
-    case TimeItemsEvent(timeItems) =>
-      timeItems.foreach {
-        timeItem =>
-        listeners.takeItem().tell(TimeItemEvent(timeItem))
-    }
-  }
-}
-
-case class TimeItemsTransformerActor(transformer: TimeItemTransformer, nrOfTransformations: Int = 1, includeOriginal: Boolean = false, var listeners: MusicActorPattern = emptyActor) extends NodeActor {
-  override def receive: PartialFunction[MusicEvent, Unit] = {
-    case original @ TimeItemsEvent(timeItems) =>
-      val initial = if(includeOriginal) original.timeItems else transformer.transform(original.timeItems)
-      (0 until nrOfTransformations).foldLeft(initial) {
-        case (items, i) =>
-          listeners.takeItem().tell(TimeItemsEvent(items))
-          transformer.transform(items)
-      }
-  }
-}
 
 
 

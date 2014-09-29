@@ -1,7 +1,7 @@
 package music
 
 import org.scalatest.FlatSpec
-import music.Patterns._
+import music.Pattern._
 
 /**
  * Test-class for patterns
@@ -79,5 +79,14 @@ class PatternsSpec extends FlatSpec {
   it should "be possible to nest" in {
     val expectedItems = List(1, 2, 5, 6, 5, 6)
     val nestedPattern = line(atom(1), atom(2), cycle(atom(5), atom(6)))
+  }
+
+  behavior of "LookupPattern"
+
+  it should "possible to get value from a map with the key in a pattern" in {
+    val lookup = Map(1 -> "one")
+    val pattern = constant(1)
+    val lookupPattern = LookupPattern(lookup, pattern)
+    assert(lookupPattern.takeItem() == "one")
   }
 }

@@ -2,7 +2,7 @@ package music
 
 import org.scalatest.FlatSpec
 import music.TimeItem._
-import music.Patterns._
+import music.Pattern._
 
 /**
  * Testclass for Pulse

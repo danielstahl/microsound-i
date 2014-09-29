@@ -10,7 +10,11 @@ case class AtomItem[A](atom: A) extends PatternItem[A] {
   def takeItem(): A = atom
 }
 
-object Patterns {
+
+object Pattern {
+  type PatternType[A] = PatternItem[A]
+  type LookupPatternType[K, V] = LookupPattern[K, V, PatternItem[K]]
+
   def atom[A](atom: A): AtomItem[A] = AtomItem(atom)
 
   def constant[A, T <% PatternItem[A]](item: A): ConstantPattern[A, PatternItem[A]] = ConstantPattern(AtomItem(item))
@@ -103,4 +107,20 @@ case class PalindromePattern[A, T <% PatternItem[A]](items: List[T], elide: Elid
   }
 
   def getItems: List[T] = items ++ reverse
+}
+
+/**
+ * Implement repeater
+ *
+ */
+
+/**
+ * The pattern returns keys (K) into a map
+ * @param lookup the lookup map
+ * @param pattern the pattern
+ */
+case class LookupPattern[K, V, T <% PatternItem[K]](lookup: Map[K, V], pattern: Pattern[K, T]) extends PatternItem[V] {
+  def takeItem(): V = {
+    lookup(pattern.takeItem())
+  }
 }
