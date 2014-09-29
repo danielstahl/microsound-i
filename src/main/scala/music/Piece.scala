@@ -44,13 +44,13 @@ import SpectrumName._
  * TimeItem
  * startTime, delta, duration
  *
- * Gesture
+ * GestureItem
  * attackTime, attackType
  *
- * Frequency (Sound)
+ * FrequencyItem (Sound)
  * frequencies, bws, instrumentName
  *
- * Position
+ * PositionItem
  * startPan, endPan
  *
  *
@@ -144,6 +144,8 @@ object Piece {
       LookupPattern(frequencyBwsData, cycle(atom('noise5), atom('noise6), atom('noise7)))
     )
 
+  val frequencyFilterBuilderPattern = cycle(atom(frequencyFilterBuilder1), atom(frequencyFilterBuilder2), atom(frequencyFilterBuilder3), atom(frequencyFilterBuilder4))
+
   val frequencyFilterChordsPlayer = FrequencyFilterChordsPlayer(Music.player, 5)
 
   val frequencyFilterBuilderActor =
@@ -155,6 +157,13 @@ object Piece {
 
   val musicChannelPlayer = MusicChannelPlayer(Music.player)
 
+  val positionItemPatterns: PatternItem[PatternItem[PositionItem]] = cycle(
+    atom(palindrome(Elide.BOTH, atom(PositionItem(-1f, -0.9f)), atom(PositionItem(-0.9f, -0.8f)), atom(PositionItem(-0.8f, -0.7f)), atom(PositionItem(-0.7f, -0.6f)))),
+    atom(palindrome(Elide.BOTH, atom(PositionItem(-0.5f, -0.4f)), atom(PositionItem(-0.4f, -0.3f)), atom(PositionItem(-0.3f, -0.2f)), atom(PositionItem(-0.2f, -0.1f)), atom(PositionItem(-0.1f, 0.0f)))),
+
+    atom(palindrome(Elide.BOTH, atom(PositionItem(0.5f, 0.4f)), atom(PositionItem(0.4f, 0.3f)), atom(PositionItem(0.3f, 0.2f)), atom(PositionItem(0.2f, 0.1f)), atom(PositionItem(0.1f, 0.0f)))),
+    atom(palindrome(Elide.BOTH, atom(PositionItem(1f, 0.9f)), atom(PositionItem(0.9f, 0.8f)), atom(PositionItem(0.8f, 0.7f)), atom(PositionItem(0.7f, 0.6f))))
+  )
 
   val pattern = cycle(
     atom((2, 1, timeAtom)),
@@ -184,7 +193,7 @@ object Piece {
     _.listen(TimeItemSplitterActor())
       .listen(TimeItemBuilderActor(subPattern))
       .listen(TimeItemsTransformerActor(PatternTimeItemTransformer(transformPattern)))
-      .listen(MusicItemMaker(cycle(atom(frequencyFilterBuilder1), atom(frequencyFilterBuilder2), atom(frequencyFilterBuilder3), atom(frequencyFilterBuilder4))))
+      .listen(MusicItemMaker(frequencyFilterBuilderPattern, positionItemPatterns))
       .listen(musicChannelMaker)
       .listen(musicChannelPlayer)
   }

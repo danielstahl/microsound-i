@@ -3,16 +3,18 @@ package music
 import music.MusicActor._
 import FrequencyFilter._
 
-case class MusicItem(timeItem: TimeItem, chord: FrequencyFilterChord)
+case class MusicItem(timeItem: TimeItem, chord: FrequencyFilterChord, position: PositionItem)
 
 case class MusicItemsEvent(musicItems: List[MusicItem]) extends MusicEvent
 
-case class MusicItemMaker(frequencyFilterChordBuilderPattern: PatternItem[FrequencyFilterChordBuilder], var listeners: MusicActorPattern = emptyActor) extends NodeActor {
+case class MusicItemMaker(frequencyBuilderPattern: PatternItem[FrequencyFilterChordBuilder], positionItemPatterns: PatternItem[PatternItem[PositionItem]], var listeners: MusicActorPattern = emptyActor) extends NodeActor {
   def receive = {
     case TimeItemsEvent(timeItems) =>
+      val frequencyBuilder = frequencyBuilderPattern.takeItem()
+      val positionItemPattern = positionItemPatterns.takeItem()
       listeners.takeItem().tell(MusicItemsEvent(timeItems.map {
         timeItem =>
-          MusicItem(timeItem, frequencyFilterChordBuilderPattern.takeItem().buildFrequencyChord)
+          MusicItem(timeItem, frequencyBuilder.buildFrequencyChord, positionItemPattern.takeItem())
       }))
   }
 }
@@ -30,7 +32,6 @@ case class MusicChannelMaker(var listeners: MusicActorPattern = emptyActor)  ext
   }
 }
 
-
 case class MusicChannelPlayer(player: MusicPlayer) extends LeafActor {
   private val defaultBase = BaseArgument()
 
@@ -43,6 +44,7 @@ case class MusicChannelPlayer(player: MusicPlayer) extends LeafActor {
             musicItem.chord.instrument.arguments ++
               defaultBase.arguments ++
               TimeArgument(musicItem.timeItem.duration, 0.5f).arguments ++
+              PanArgument(musicItem.position.start, musicItem.position.end).arguments ++
               makeFrequenciesArgument(musicItem.chord).arguments ++
               makeBwsArgument(musicItem.chord).arguments, absoluteTimeToMillis(musicItem.timeItem.start))
 
