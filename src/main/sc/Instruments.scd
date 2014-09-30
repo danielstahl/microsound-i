@@ -25,6 +25,14 @@ Group.head(1006); //1007
 Group.head(1007); //1008
 )
 
+Env([0.001, 1, 0.001], [0.5], [\lin, \lin]).plot(name: "lin lin");
+Env([0.001, 1, 0.001], [0.5], [\sin, \sin]).plot(name: "sin sin");
+Env([0.001, 1, 0.001], [0.5], [\exp, \exp]).plot(name: "exp exp");
+Env([0.001, 1, 0.001], [0.5], [\wel, \wel]).plot(name: "wel wel");
+Env([0.001, 1, 0.001], [0.5], [\sqr, \sqr]).plot(name: "sqr sqr");
+Env([0.001, 1, 0.001], [0.5], [\cub, \cub]).plot(name: "cub cub");
+
+
 // First comes the instruments
 (
 	SynthDef(\reverb, {

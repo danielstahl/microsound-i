@@ -45,15 +45,28 @@ case class AttackArgument(start: Float = 0, end: Float = 0) extends RangeFloatAr
   def endArgument: String = "decayCurve"
 }
 
+
+
 case class AttackArgument2(attackType: Either[String, (Float, Float)]) extends InstrumentArgument {
   def arguments: Seq[Object] = {
     attackType match {
       case Left(theType) => Array("attackType", theType)
       case Right((start, end)) => Array("attackType", Array(start, end))
     }
-
   }
+}
 
+case class AttackArgument3(attackCurve: Either[String, (Float, Float)], decayCurve: Either[String, (Float, Float)]) extends InstrumentArgument {
+  def arguments: Seq[Object] = {
+
+    def makeCurveArguments(curve: Either[String, (Float, Float)], curveName: String) =
+      curve match {
+        case Left(theType) => Array(curveName, theType)
+        case Right((start, end)) => Array(curveName, Array(start, end))
+      }
+    makeCurveArguments(attackCurve, "attackCurve") ++
+    makeCurveArguments(decayCurve, "decayCurve")
+  }
 }
 
 case class PanArgument(start: Float, end: Float) extends RangeFloatArgument(start, end) {

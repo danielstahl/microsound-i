@@ -45,16 +45,13 @@ import SpectrumName._
  * startTime, delta, duration
  *
  * GestureItem
- * attackTime, attackType
+ * amp, attackTime, attackType
  *
  * FrequencyItem (Sound)
  * frequencies, bws, instrumentName
  *
  * PositionItem
  * startPan, endPan
- *
- *
- *
  *
  *
  * Toppstrukturen
@@ -165,6 +162,22 @@ object Piece {
     atom(palindrome(Elide.BOTH, atom(PositionItem(1f, 0.9f)), atom(PositionItem(0.9f, 0.8f)), atom(PositionItem(0.8f, 0.7f)), atom(PositionItem(0.7f, 0.6f))))
   )
 
+  val gestureItemPatterns: PatternItem[PatternItem[GestureItem]] = cycle(
+    atom(palindrome(Elide.BOTH,
+      atom(GestureItem(0.02f, SOFT_INVPHI_TIME.value, LINEAR, LINEAR)),
+      atom(GestureItem(0.04f, HALF_TIME.value, SINE, SINE)),
+      atom(GestureItem(0.06f, SHARP_INVPHI_TIME.value, WELCH, WELCH))
+    )),
+
+    atom(cycle(
+      atom(GestureItem(0.04f, SOFT_INVPHI_TIME.value, WELCH, WELCH)),
+      atom(GestureItem(0.06f, HALF_TIME.value, SINE, SINE)),
+      atom(GestureItem(0.02f, SOFT_INVPHI_TIME.value, SINE, SINE)),
+      atom(GestureItem(0.02f, SHARP_INVPHI_TIME.value, LINEAR, LINEAR)),
+      atom(GestureItem(0.04f, HALF_TIME.value, WELCH, WELCH))
+    ))
+  )
+
   val pattern = cycle(
     atom((2, 1, timeAtom)),
     palindrome(Elide.LAST, atom((3, 2, timeAtom)), atom((2, 2, timeAtom))),
@@ -193,7 +206,7 @@ object Piece {
     _.listen(TimeItemSplitterActor())
       .listen(TimeItemBuilderActor(subPattern))
       .listen(TimeItemsTransformerActor(PatternTimeItemTransformer(transformPattern)))
-      .listen(MusicItemMaker(frequencyFilterBuilderPattern, positionItemPatterns))
+      .listen(MusicItemMaker(frequencyFilterBuilderPattern, positionItemPatterns, gestureItemPatterns))
       .listen(musicChannelMaker)
       .listen(musicChannelPlayer)
   }

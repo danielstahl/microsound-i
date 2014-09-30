@@ -3,18 +3,25 @@ package music
 import music.MusicActor._
 import FrequencyFilter._
 
-case class MusicItem(timeItem: TimeItem, chord: FrequencyFilterChord, position: PositionItem)
+case class MusicItem(timeItem: TimeItem, chord: FrequencyFilterChord, position: PositionItem, gesture: GestureItem)
 
 case class MusicItemsEvent(musicItems: List[MusicItem]) extends MusicEvent
 
-case class MusicItemMaker(frequencyBuilderPattern: PatternItem[FrequencyFilterChordBuilder], positionItemPatterns: PatternItem[PatternItem[PositionItem]], var listeners: MusicActorPattern = emptyActor) extends NodeActor {
+case class MusicItemMaker(frequencyBuilderPattern: PatternItem[FrequencyFilterChordBuilder],
+                          positionItemPatterns: PatternItem[PatternItem[PositionItem]],
+                          gestureItemPatterns: PatternItem[PatternItem[GestureItem]],
+                          var listeners: MusicActorPattern = emptyActor) extends NodeActor {
   def receive = {
     case TimeItemsEvent(timeItems) =>
       val frequencyBuilder = frequencyBuilderPattern.takeItem()
       val positionItemPattern = positionItemPatterns.takeItem()
+      val gestureItemPattern = gestureItemPatterns.takeItem()
       listeners.takeItem().tell(MusicItemsEvent(timeItems.map {
         timeItem =>
-          MusicItem(timeItem, frequencyBuilder.buildFrequencyChord, positionItemPattern.takeItem())
+          MusicItem(timeItem,
+            frequencyBuilder.buildFrequencyChord,
+            positionItemPattern.takeItem(),
+            gestureItemPattern.takeItem())
       }))
   }
 }
@@ -43,8 +50,10 @@ case class MusicChannelPlayer(player: MusicPlayer) extends LeafActor {
           player.sendNew(
             musicItem.chord.instrument.arguments ++
               defaultBase.arguments ++
-              TimeArgument(musicItem.timeItem.duration, 0.5f).arguments ++
+              TimeArgument(musicItem.timeItem.duration, musicItem.gesture.attackTime).arguments ++
               PanArgument(musicItem.position.start, musicItem.position.end).arguments ++
+              AmpArgument(musicItem.gesture.amplitude).arguments ++
+              AttackArgument3(Left(musicItem.gesture.attackCurve.name.name), Left(musicItem.gesture.decayCurve.name.name)).arguments ++
               makeFrequenciesArgument(musicItem.chord).arguments ++
               makeBwsArgument(musicItem.chord).arguments, absoluteTimeToMillis(musicItem.timeItem.start))
 
