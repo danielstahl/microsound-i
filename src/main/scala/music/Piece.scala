@@ -152,7 +152,7 @@ object Piece {
 
   val musicChannelMaker = MusicChannelMaker()
 
-  val musicChannelPlayer = MusicChannelPlayer(Music.player)
+  val musicChannelPlayer = MusicChannelPlayer(Music.player, Some(List(0, 1)))
 
   val positionItemPatterns: PatternItem[PatternItem[PositionItem]] = cycle(
     atom(palindrome(Elide.BOTH, atom(PositionItem(-1f, -0.9f)), atom(PositionItem(-0.9f, -0.8f)), atom(PositionItem(-0.8f, -0.7f)), atom(PositionItem(-0.7f, -0.6f)))),
