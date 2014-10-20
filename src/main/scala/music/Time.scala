@@ -497,35 +497,35 @@ object INV_SOFT_PATTERN1 extends PartPattern(
 //Extra sharp duration 0.001f
 // 1 1 2 1 1 1 2 21   1 1 2 1 2 13   2 2 1 1 1 2 2 21  1 2 13
 object SHARPER_PATTERN1 extends PartPattern(
-  Seq((1, absolute(0.001f), 0.1f, SHARP_CURVE),
-      (1, absolute(0.001f), 0.2f, SHARP_CURVE),
-      (2, absolute(0.001f), 0.3f, SHARP_CURVE),
-      (1, absolute(0.001f), 0.1f, SHARP_CURVE),
-      (1, absolute(0.001f), 0.2f, SHARP_CURVE),
-      (1, absolute(0.001f), 0.3f, SHARP_CURVE),
-      (2, absolute(0.001f), 0.4f, SHARP_CURVE),
-      (21, absolute(0.001f), 0.2f, SHARP_CURVE),
+  Seq((1f, absolute(0.001f), 0.1f, SHARP_CURVE),
+      (1f, absolute(0.001f), 0.2f, SHARP_CURVE),
+      (2f, absolute(0.001f), 0.3f, SHARP_CURVE),
+      (1f, absolute(0.001f), 0.1f, SHARP_CURVE),
+      (1f, absolute(0.001f), 0.2f, SHARP_CURVE),
+      (1f, absolute(0.001f), 0.3f, SHARP_CURVE),
+      (2f, absolute(0.001f), 0.4f, SHARP_CURVE),
+      (21f, absolute(0.001f), 0.2f, SHARP_CURVE),
 
-    (1, absolute(0.001f), 0.1f, SHARP_CURVE),
-    (1, absolute(0.001f), 0.2f, SHARP_CURVE),
-    (2, absolute(0.001f), 0.3f, SHARP_CURVE),
-    (1, absolute(0.001f), 0.1f, SHARP_CURVE),
-    (2, absolute(0.001f), 0.2f, SHARP_CURVE),
-    (13, absolute(0.001f), 0.3f, SHARP_CURVE),
+    (1f, absolute(0.001f), 0.1f, SHARP_CURVE),
+    (1f, absolute(0.001f), 0.2f, SHARP_CURVE),
+    (2f, absolute(0.001f), 0.3f, SHARP_CURVE),
+    (1f, absolute(0.001f), 0.1f, SHARP_CURVE),
+    (2f, absolute(0.001f), 0.2f, SHARP_CURVE),
+    (13f, absolute(0.001f), 0.3f, SHARP_CURVE),
 
 
-    (2, absolute(0.001f), 0.3f, SHARP_CURVE),
-    (2, absolute(0.001f), 0.2f, SHARP_CURVE),
-    (1, absolute(0.001f), 0.1f, SHARP_CURVE),
-    (1, absolute(0.001f), 0.1f, SHARP_CURVE),
-    (1, absolute(0.001f), 0.1f, SHARP_CURVE),
-    (2, absolute(0.001f), 0.2f, SHARP_CURVE),
-    (2, absolute(0.001f), 0.3f, SHARP_CURVE),
-    (21, absolute(0.001f), 0.2f, SHARP_CURVE),
+    (2f, absolute(0.001f), 0.3f, SHARP_CURVE),
+    (2f, absolute(0.001f), 0.2f, SHARP_CURVE),
+    (1f, absolute(0.001f), 0.1f, SHARP_CURVE),
+    (1f, absolute(0.001f), 0.1f, SHARP_CURVE),
+    (1f, absolute(0.001f), 0.1f, SHARP_CURVE),
+    (2f, absolute(0.001f), 0.2f, SHARP_CURVE),
+    (2f, absolute(0.001f), 0.3f, SHARP_CURVE),
+    (21f, absolute(0.001f), 0.2f, SHARP_CURVE),
 
-    (1, absolute(0.001f), 0.1f, SHARP_CURVE),
-    (2, absolute(0.001f), 0.2f, SHARP_CURVE),
-    (13, absolute(0.001f), 0.3f, SHARP_CURVE)
+    (1f, absolute(0.001f), 0.1f, SHARP_CURVE),
+    (2f, absolute(0.001f), 0.2f, SHARP_CURVE),
+    (13f, absolute(0.001f), 0.3f, SHARP_CURVE)
 ))
 
 
@@ -575,7 +575,6 @@ trait Duration {
 
 object Duration {
   def relative(dur: Float): Duration = RelativeDuration(dur)
-
   def absolute(dur: Float): Duration = AbsouluteDuration(dur)
 }
 
@@ -585,4 +584,8 @@ sealed case class AbsouluteDuration(dur: Float) extends Duration {
 
 sealed case class RelativeDuration(dur: Float) extends Duration {
   def getAbsoulteTime(time: Float): Float = time * dur
+}
+
+sealed case class PatternDuration(pattern: PatternItem[Duration]) extends Duration {
+  override def getAbsoulteTime(time: Float): Float = pattern.takeItem().getAbsoulteTime(time)
 }

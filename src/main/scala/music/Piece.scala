@@ -73,10 +73,29 @@ import SpectrumName._
  * We should expose PatternItem[A] not Pattern
  *
  *
+ *
+ * Grain
+ * Vi får totaltid för ett grain
+ * Vi hämtar ut en lista med TimeItem via pattern. Det finns ett antal fasta.
+ * 2, 3, 2, 5, 3
+ *
+ *
+ * För varje del så väljer vi ut ett mönster via pattern. Det finns ett antal fasta.
+ * Dom har
+ * - Delta tider.
+ * - relativ duration eller fast duration
+ * - Simple Gesture amp, attackTime, curve.
+ *
+ *
+ * GrainItem
+ * GrainGrid - The grid that holds the grain pattern
+ * GrainGesture the grain gesture
+ *
+ *
  */
 
 object Piece {
-  final val totalDuration = TimeItemEvent(TimeItem(0, 60 * 5, 60 * 5))
+  final val totalDuration = TimeItemEvent(TimeItem(0, 60 * 5, 60 * 5, None))
 
   val printActor: MusicActorPattern = constant(PrinterActor)
 
@@ -152,7 +171,9 @@ object Piece {
 
   val musicChannelMaker = MusicChannelMaker()
 
-  val musicChannelPlayer = MusicChannelPlayer(Music.player, Some(List(0, 1)))
+  val playGrains = true
+
+  val musicChannelPlayer = MusicChannelPlayer(Music.player, 21, Some(List(0, 1, 2, 3))/*None*/, playGrains)
 
   val positionItemPatterns: PatternItem[PatternItem[PositionItem]] = cycle(
     atom(palindrome(Elide.BOTH, atom(PositionItem(-1f, -0.9f)), atom(PositionItem(-0.9f, -0.8f)), atom(PositionItem(-0.8f, -0.7f)), atom(PositionItem(-0.7f, -0.6f)))),
@@ -202,11 +223,38 @@ object Piece {
       atom(PulseTransformer(5))
     )
 
+
+  val grainGridPattern = constant(
+    relativeScaledTime(
+      (1, 1, timeAtom),
+      (2, 2, timeAtom),
+      (3, 3, timeAtom),
+      (2, 2, timeAtom),
+      (2, 2, timeAtom),
+      (1, 1, timeAtom),
+      (1, 1, timeAtom),
+      (3, 3, timeAtom)
+      ))
+
+  val gestureTimePattern =
+    constant(
+      relativeScaledTime(
+        (5, 5, TimeItemDurationBuilder(RelativeDuration(3f), Some('long))),
+        (3, 3, TimeItemDurationBuilder(RelativeDuration(0.1f), Some('middle))),
+        (5, 5, TimeItemDurationBuilder(RelativeDuration(0.2f), Some('middle)))
+
+        ))
+  val grainPatterns = Map(
+    'long -> constant(RelativeDeltaGrain('long, 0.1f, 0.5f, EXPONENTIAL)),
+    'middle -> constant(RelativeDeltaGrain('middle, 0.2f, 0.33f, EXPONENTIAL)))
+
+  val grainGestureBuilder = GrainGestureBuilder(grainGridPattern, gestureTimePattern, grainPatterns)
+
   val topActor = withActor(TimeItemBuilderActor(constant(builder))) {
     _.listen(TimeItemSplitterActor())
       .listen(TimeItemBuilderActor(subPattern))
       .listen(TimeItemsTransformerActor(PatternTimeItemTransformer(transformPattern)))
-      .listen(MusicItemMaker(frequencyFilterBuilderPattern, positionItemPatterns, gestureItemPatterns))
+      .listen(MusicItemMaker(frequencyFilterBuilderPattern, positionItemPatterns, gestureItemPatterns, grainGestureBuilder))
       .listen(musicChannelMaker)
       .listen(musicChannelPlayer)
   }
@@ -217,8 +265,9 @@ object Piece {
     //Music.player.startPlay()
     //plotter.show()
     //structureActorv2.tell(totalDuration)
-
     Music.player.startPlay()
+
+    musicChannelPlayer.playLayers()
     //frequencyFilterBuilderActor.tell(GenerateFrequencyFilterChordEvent(10))
     //val result = frequencyFilterBuilder.buildFrequencyChords(12)
     //result.foreach(println(_))

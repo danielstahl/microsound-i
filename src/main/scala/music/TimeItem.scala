@@ -3,7 +3,7 @@ package music
 import music.MusicActor._
 import music.TimeItem._
 
-case class TimeItem(start: Float, delta: Float, duration: Float)
+case class TimeItem(start: Float, delta: Float, duration: Float, noteClass: Option[Symbol] = None)
 
 object TimeItem {
   type TimeItemBuilderPattern = PatternItem[TimeItemBuilder]
@@ -21,7 +21,7 @@ object TimeItem {
 
 }
 
-case class DeltaTime(delta: Float, duration: Float)
+case class DeltaTime(delta: Float, duration: Float, noteClass: Option[Symbol] = None)
 
 trait TimeItemBuilder {
   def build(startTime: Float, totalDelta: Float, totalDuration: Float): List[TimeItem] = {
@@ -34,7 +34,7 @@ trait TimeItemBuilder {
     var tempTime = startTime
     parts.map {
       deltaTime =>
-        val item = TimeItem(tempTime, deltaTime.delta, deltaTime.duration)
+        val item = TimeItem(tempTime, deltaTime.delta, deltaTime.duration, deltaTime.noteClass)
         tempTime = tempTime + deltaTime.delta
         item
     }
@@ -44,6 +44,12 @@ trait TimeItemBuilder {
 object TimeAtomBuilder extends TimeItemBuilder {
   override def buildRelativeTime(totalDelta: Float, totalDuration: Float): List[DeltaTime] = {
     List(DeltaTime(totalDelta, totalDuration))
+  }
+}
+
+case class TimeItemDurationBuilder(duration: Duration, noteClass: Option[Symbol] = None) extends TimeItemBuilder {
+  override def buildRelativeTime(totalDelta: Float, totalDuration: Float): List[DeltaTime] = {
+    List(DeltaTime(totalDelta, duration.getAbsoulteTime(totalDuration), noteClass))
   }
 }
 
@@ -86,7 +92,7 @@ case class PulseTransformer(repeats: Int = 1) extends TimeItemTransformer {
       i =>
        val startTime = i * totalDelta
        items.map {
-         case TimeItem(start, delta, duration) => TimeItem(startTime + start, delta, duration)
+         case TimeItem(start, delta, duration, noteClass) => TimeItem(startTime + start, delta, duration, noteClass)
        }
     }
   }
@@ -100,7 +106,7 @@ case class ScaleTransformer(deltaFactor: Float = 1, durationFactor: Float = 1) e
       case ((nextStart, result), timeItem) =>
         val newDelta = timeItem.delta * deltaFactor
         val newDuration = timeItem.duration * durationFactor
-        (nextStart + newDelta, result ::: List(TimeItem(nextStart, newDelta, newDuration)))
+        (nextStart + newDelta, result ::: List(TimeItem(nextStart, newDelta, newDuration, timeItem.noteClass)))
     }
     newItems._2
   }
