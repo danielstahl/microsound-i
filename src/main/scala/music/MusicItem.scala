@@ -59,13 +59,15 @@ case class MusicChannelPlayer(player: MusicPlayer, nbrOfChannels: Int, channelsT
       musicItems.foreach {
         musicItem =>
           if(shouldPlayItem(channel)) {
-            println(s"playing $musicItem at channel $channel")
-            updateStartTime(musicItem, channel)
-            val startTime = getStartTime(musicItem)
-            playMusicItem(musicItem, channel, startTime, playGrains)
+            //println(s"playing $musicItem at channel $channel")
+            updateStartDelta(musicItem, channel)
+            updateStartTime(musicItem)
+            playMusicItem(musicItem, channel, playGrains)
             if(playGrains)
               musicItem.grains.foreach {
-                grain => playGrain(grain, channel, startTime)
+                grain =>
+                  updateStartTime(grain)
+                  playGrain(grain, channel)
               }
 
           }
@@ -74,23 +76,23 @@ case class MusicChannelPlayer(player: MusicPlayer, nbrOfChannels: Int, channelsT
 
   var startDelta: Option[Float] = None
 
-  def updateStartTime(musicItem: MusicItem, channel: Int): Unit = {
+  def updateStartDelta(musicItem: MusicItem, channel: Int): Unit = {
     if(channelsToPlay.isDefined && startDelta.isEmpty && channelsToPlay.exists(chns => chns.contains(channel))) {
       startDelta = Some(musicItem.timeItem.start)
     }
   }
 
-  def getStartTime(musicItem: MusicItem): Float =
+  def updateStartTime(musicItem: MusicItem): Float =
     musicItem.timeItem.start - startDelta.getOrElse(0f)
 
-  def getStartTime(grain: AbsoluteGrain): Float =
+  def updateStartTime(grain: AbsoluteGrain): Float =
     grain.start - startDelta.getOrElse(0f)
 
   def shouldPlayItem(channel: Int): Boolean = {
     channelsToPlay.isEmpty || channelsToPlay.exists(chns => chns.contains(channel))
   }
 
-  def playMusicItem(musicItem: MusicItem, channel: Int, startTime: Float, playGrains: Boolean) = {
+  def playMusicItem(musicItem: MusicItem, channel: Int, playGrains: Boolean) = {
     val baseOutput = OutbusArgument(16 + (channel * 2)).arguments
 
     val baseSourceArgs =
@@ -100,9 +102,12 @@ case class MusicChannelPlayer(player: MusicPlayer, nbrOfChannels: Int, channelsT
 
     val outputArgs = if(playGrains) OutbusArgument(16 + (channel * 2)).arguments else Seq()
 
+    val startTime = musicItem.timeItem.start
+
+    println(s"Item start $startTime channel: $channel item: $musicItem")
+
     player.sendNew(
       musicItem.chord.instrument.arguments ++
-        //defaultBase.arguments ++
         baseSourceArgs ++
         outputArgs ++
         TimeArgument(musicItem.timeItem.duration, musicItem.gesture.attackTime).arguments ++
@@ -113,27 +118,19 @@ case class MusicChannelPlayer(player: MusicPlayer, nbrOfChannels: Int, channelsT
         makeBwsArgument(musicItem.chord).arguments, absoluteTimeToMillis(startTime))
   }
 
-  /*
-  player.sendNew(noiseGrain.arguments ++
-                  baseGrainArgs ++
-                  patternInput ++
-                  patternOutput ++
-                  AttackArgument2(attackType).arguments ++
-                  TimeArgument(pdur, attack).arguments ++
-                  AmpArgument(amp).arguments,
-                  (pstart * 1000).round.toLong)
-  * */
-
   val noiseGrain = NoiseGrain2
 
-  def playGrain(grain: AbsoluteGrain, channel: Int, startTime: Float) = {
+  def playGrain(grain: AbsoluteGrain, channel: Int) = {
     val patternInput = InbusArgument(16 + (channel * 2))
     val patternOutput = OutbusArgument(0)
     val baseGrainArgs = BaseArgument(targetNodeId = layers.get.getGroup(channel, GroupName.GRAIN)).arguments
 
+    val startTime = grain.start
+
+    println(s"Grain Start $startTime channel: $channel grain: $grain")
+
     player.sendNew(
       noiseGrain.arguments ++
-      //defaultBase.arguments ++
       baseGrainArgs ++
       patternInput.arguments ++
       patternOutput.arguments ++
@@ -144,49 +141,3 @@ case class MusicChannelPlayer(player: MusicPlayer, nbrOfChannels: Int, channelsT
     )
   }
 }
-
-
-
-/*
-def internalPlay2(absoluteTime: Float, track: Int)(implicit player: MusicPlayer, layers: Layers) = {
-    val baseOutput = OutbusArgument(16 + (track * 2)).arguments
-    val patternInput = InbusArgument(16 + (track * 2)).arguments
-    val patternOutput = OutbusArgument(0).arguments
-
-    val baseSourceArgs = BaseArgument(targetNodeId = layers.getGroup(track, SOURCE)).arguments
-    val baseGrainArgs = BaseArgument(targetNodeId = layers.getGroup(track, GRAIN)).arguments
-    val baseAmp = AmpArgument(0.9f).arguments
-
-    var tempTime = absoluteTime
-    val noiseGrain = NoiseGrain2
-    ((bases, notes, pans).zipped.toSeq, pulseParts).zipped.foreach {
-      case ((baseValue, noteValue, panValue), pulsePart) =>
-        player.sendNew(noteValue.instrument.arguments ++
-          baseSourceArgs ++
-          baseValue.time.arguments ++
-          baseAmp ++
-          panValue.arguments ++
-          baseOutput ++
-          noteValue.args.flatMap(_.arguments), (tempTime * 1000).round.toLong)
-
-        pulsePart.scaleAndSum(tempTime, baseValue.time.dur).foreach {
-          case (start, dur, pattern) => {
-            pattern.scaleAndSum(start, dur).foreach {
-              case (pstart, pdur, amp, (attackType, attack)) => {
-                player.sendNew(noiseGrain.arguments ++
-                  baseGrainArgs ++
-                  patternInput ++
-                  patternOutput ++
-                  AttackArgument2(attackType).arguments ++
-                  TimeArgument(pdur, attack).arguments ++
-                  AmpArgument(amp).arguments,
-                  (pstart * 1000).round.toLong)
-              }
-            }
-          }
-        }
-        tempTime = tempTime + baseValue.delta
-    }
-
-  }
-* */
