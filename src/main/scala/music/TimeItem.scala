@@ -3,7 +3,7 @@ package music
 import music.MusicActor._
 import music.TimeItem._
 
-case class TimeItem(start: Float, delta: Float, duration: Float, noteClass: Option[Symbol] = None)
+case class TimeItem(var start: Float, delta: Float, duration: Float, noteClass: Option[Symbol] = None)
 
 object TimeItem {
   type TimeItemBuilderPattern = PatternItem[TimeItemBuilder]

@@ -59,7 +59,6 @@ case class MusicChannelPlayer(player: MusicPlayer, nbrOfChannels: Int, channelsT
       musicItems.foreach {
         musicItem =>
           if(shouldPlayItem(channel)) {
-            //println(s"playing $musicItem at channel $channel")
             updateStartDelta(musicItem, channel)
             updateStartTime(musicItem)
             playMusicItem(musicItem, channel, playGrains)
@@ -82,30 +81,30 @@ case class MusicChannelPlayer(player: MusicPlayer, nbrOfChannels: Int, channelsT
     }
   }
 
-  def updateStartTime(musicItem: MusicItem): Float =
-    musicItem.timeItem.start - startDelta.getOrElse(0f)
+  def updateStartTime(musicItem: MusicItem) =
+    musicItem.timeItem.start = musicItem.timeItem.start - startDelta.getOrElse(0f)
 
-  def updateStartTime(grain: AbsoluteGrain): Float =
-    grain.start - startDelta.getOrElse(0f)
+  def updateStartTime(grain: AbsoluteGrain) =
+    grain.start = grain.start - startDelta.getOrElse(0f)
 
   def shouldPlayItem(channel: Int): Boolean = {
     channelsToPlay.isEmpty || channelsToPlay.exists(chns => chns.contains(channel))
   }
 
   def playMusicItem(musicItem: MusicItem, channel: Int, playGrains: Boolean) = {
-    val baseOutput = OutbusArgument(16 + (channel * 2)).arguments
 
     val baseSourceArgs =
       layers.map(ls =>
         BaseArgument(targetNodeId = ls.getGroup(channel, GroupName.SOURCE)).arguments).
         getOrElse(defaultBase.arguments)
 
+
     val outputArgs = if(playGrains) OutbusArgument(16 + (channel * 2)).arguments else Seq()
 
     val startTime = musicItem.timeItem.start
 
-    println(s"Item start $startTime channel: $channel item: $musicItem")
-
+    //println(s"Item start $startTime channel: $channel item: $musicItem")
+    println(s"Item start $startTime channel: $channel bus: ${16 + (channel * 2)}")
     player.sendNew(
       musicItem.chord.instrument.arguments ++
         baseSourceArgs ++
@@ -126,8 +125,6 @@ case class MusicChannelPlayer(player: MusicPlayer, nbrOfChannels: Int, channelsT
     val baseGrainArgs = BaseArgument(targetNodeId = layers.get.getGroup(channel, GroupName.GRAIN)).arguments
 
     val startTime = grain.start
-
-    println(s"Grain Start $startTime channel: $channel grain: $grain")
 
     player.sendNew(
       noiseGrain.arguments ++

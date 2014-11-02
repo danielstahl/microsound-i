@@ -173,7 +173,7 @@ object Piece {
 
   val playGrains = true
 
-  val musicChannelPlayer = MusicChannelPlayer(Music.player, 21, Some(List(0)), playGrains)
+  val musicChannelPlayer = MusicChannelPlayer(Music.player, 21, /*Some(List(2,3,4,5))*/None, playGrains)
 
   val positionItemPatterns: PatternItem[PatternItem[PositionItem]] = cycle(
     atom(palindrome(Elide.BOTH, atom(PositionItem(-1f, -0.9f)), atom(PositionItem(-0.9f, -0.8f)), atom(PositionItem(-0.8f, -0.7f)), atom(PositionItem(-0.7f, -0.6f)))),
@@ -239,14 +239,18 @@ object Piece {
   val gestureTimePattern =
     constant(
       relativeScaledTime(
-        (5, 5, TimeItemDurationBuilder(RelativeDuration(3f), Some('long))),
-        (3, 3, TimeItemDurationBuilder(RelativeDuration(0.1f), Some('middle))),
-        (5, 5, TimeItemDurationBuilder(RelativeDuration(0.2f), Some('middle)))
+        (5, 5, TimeItemDurationBuilder(RelativeDuration(0.1f), Some('long))),
+        (3, 3, TimeItemDurationBuilder(AbsouluteDuration(0.001f), Some('middle))),
+        (5, 5, TimeItemDurationBuilder(RelativeDuration(0.2f), Some('middle))),
+        (1, 1, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle))),
+        (1, 1, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle))),
+        (2, 2, TimeItemDurationBuilder(AbsouluteDuration(0.001f), Some('middle)))
 
         ))
   val grainPatterns = Map(
-    'long -> constant(RelativeDeltaGrain('long, 0.1f, 0.5f, EXPONENTIAL)),
-    'middle -> constant(RelativeDeltaGrain('middle, 0.2f, 0.33f, EXPONENTIAL)))
+    'long -> constant(RelativeDeltaGrain('long, 0.5f, 0.3f, SINE)),
+    'middle -> constant(RelativeDeltaGrain('middle, 0.7f, 0.33f, EXPONENTIAL)),
+    'short -> constant(RelativeDeltaGrain('short, 0.4f, 0.1f, EXPONENTIAL)))
 
   val grainGestureBuilder = GrainGestureBuilder(grainGridPattern, gestureTimePattern, grainPatterns)
 

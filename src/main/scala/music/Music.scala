@@ -78,7 +78,11 @@ case class Layers(size: Int) extends Playable {
           player.makeGroupTail(node(l, SOURCE), node(l, GRAIN)),
           player.makeGroupTail(node(l, GRAIN), node(l, EFFECT)))
     }
-    player.sendBundle((player.makeFreeAll(0) +: osc).toArray, 0)
+    val bundle = (player.makeFreeAll(0) +: osc).toArray
+    bundle.grouped(63).foreach {
+      subGroup => player.sendBundle(subGroup.toArray, 0)
+    }
+    //player.sendBundle((player.makeFreeAll(0) +: osc).toArray, 0)
   }
 
   def getGroup(layer: Int, group: GroupName) =
