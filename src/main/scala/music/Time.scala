@@ -384,7 +384,7 @@ sealed case class PartPattern(patterns: Seq[(Float, Duration, Float, AttackCurve
       case (time, dur, amp, AttackCurve(curveType, attack)) =>
         val tmpTime = fact * time
         //(tmpTime, tmpTime * dur, amp, (curveType, attack.value))
-        (tmpTime, dur.getAbsoulteTime(tmpTime), amp, (curveType, attack.value))
+        (tmpTime, dur.getAbsoluteTime(tmpTime), amp, (curveType, attack.value))
     }
   }
 
@@ -570,22 +570,22 @@ import AttackCurveName._
 * */
 
 trait Duration {
-  def getAbsoulteTime(time: Float): Float
+  def getAbsoluteTime(time: Float): Float
 }
 
 object Duration {
   def relative(dur: Float): Duration = RelativeDuration(dur)
-  def absolute(dur: Float): Duration = AbsouluteDuration(dur)
+  def absolute(dur: Float): Duration = AbsoluteDuration(dur)
 }
 
-sealed case class AbsouluteDuration(dur: Float) extends Duration {
-  def getAbsoulteTime(time: Float): Float = dur
+sealed case class AbsoluteDuration(dur: Float) extends Duration {
+  def getAbsoluteTime(time: Float): Float = dur
 }
 
 sealed case class RelativeDuration(dur: Float) extends Duration {
-  def getAbsoulteTime(time: Float): Float = time * dur
+  def getAbsoluteTime(time: Float): Float = time * dur
 }
 
 sealed case class PatternDuration(pattern: PatternItem[Duration]) extends Duration {
-  override def getAbsoulteTime(time: Float): Float = pattern.takeItem().getAbsoulteTime(time)
+  override def getAbsoluteTime(time: Float): Float = pattern.takeItem().getAbsoluteTime(time)
 }

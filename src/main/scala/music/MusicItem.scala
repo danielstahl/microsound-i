@@ -3,27 +3,29 @@ package music
 import music.MusicActor._
 import FrequencyFilter._
 
-case class MusicItem(timeItem: TimeItem, chord: FrequencyFilterChord, position: PositionItem, gesture: GestureItem, grains: List[AbsoluteGrain])
+case class MusicItem(timeItem: TimeItem, chord: FrequencyFilterChord, position: PositionItem, gesture: GestureItem, grainLayers: List[List[AbsoluteGrain]])
 
 case class MusicItemsEvent(musicItems: List[MusicItem]) extends MusicEvent
 
 case class MusicItemMaker(frequencyBuilderPattern: PatternItem[FrequencyFilterChordBuilder],
                           positionItemPatterns: PatternItem[PatternItem[PositionItem]],
                           gestureItemPatterns: PatternItem[PatternItem[GestureItem]],
-                          grainGestureBuilder: GrainGestureBuilder,
+                          grainGestureBuilders: List[GrainGestureBuilder],
                           var listeners: MusicActorPattern = emptyActor) extends NodeActor {
   def receive = {
     case TimeItemsEvent(timeItems) =>
       val frequencyBuilder = frequencyBuilderPattern.takeItem()
       val positionItemPattern = positionItemPatterns.takeItem()
       val gestureItemPattern = gestureItemPatterns.takeItem()
+
       listeners.takeItem().tell(MusicItemsEvent(timeItems.map {
         timeItem =>
+          val grainLayers = grainGestureBuilders.map(_.buildGrainGestures(timeItem.start, timeItem.delta, timeItem.duration))
           MusicItem(timeItem,
             frequencyBuilder.buildFrequencyChord,
             positionItemPattern.takeItem(),
             gestureItemPattern.takeItem(),
-            grainGestureBuilder.buildGrainGestures(timeItem.start, timeItem.delta, timeItem.duration))
+            grainLayers)
       }))
   }
 }
@@ -63,10 +65,13 @@ case class MusicChannelPlayer(player: MusicPlayer, nbrOfChannels: Int, channelsT
             updateStartTime(musicItem)
             playMusicItem(musicItem, channel, playGrains)
             if(playGrains)
-              musicItem.grains.foreach {
-                grain =>
-                  updateStartTime(grain)
-                  playGrain(grain, channel)
+              musicItem.grainLayers.foreach {
+                grainLayer =>
+                  grainLayer.foreach {
+                    grain =>
+                      updateStartTime(grain)
+                      playGrain(grain, channel)
+                  }
               }
 
           }

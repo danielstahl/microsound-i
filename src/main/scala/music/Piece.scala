@@ -223,7 +223,6 @@ object Piece {
       atom(PulseTransformer(5))
     )
 
-
   val grainGridPattern = cycle(
     atom(relativeScaledTime(
       (1, 1, timeAtom),
@@ -259,36 +258,54 @@ object Piece {
     cycle(
       atom(relativeScaledTime(
         (5, 5, TimeItemDurationBuilder(RelativeDuration(0.06f), Some('long))),
-        (3, 3, TimeItemDurationBuilder(AbsouluteDuration(0.001f), Some('middle))),
+        (3, 3, TimeItemDurationBuilder(AbsoluteDuration(0.001f), Some('middle))),
         (5, 5, TimeItemDurationBuilder(RelativeDuration(0.04f), Some('middle))),
-        (1, 1, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle))),
-        (1, 1, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('short))),
-        (2, 2, TimeItemDurationBuilder(AbsouluteDuration(0.001f), Some('middle))))),
+        (1, 1, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('middle))),
+        (1, 1, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('short))),
+        (2, 2, TimeItemDurationBuilder(AbsoluteDuration(0.001f), Some('middle))))),
 
       atom(relativeScaledTime(
         (13, 13, TimeItemDurationBuilder(RelativeDuration(0.05f), Some('long))),
-        (1, 1, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle))),
-        (2, 2, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('short))),
-        (3, 3, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle))),
+        (1, 1, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('middle))),
+        (2, 2, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('short))),
+        (3, 3, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('middle))),
         (21, 21, TimeItemDurationBuilder(RelativeDuration(0.05f), Some('long))),
-        (3, 3, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle))),
-        (1, 1, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('short))),
-        (2, 2, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('short))),
-        (2, 2, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle)))))
+        (3, 3, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('middle))),
+        (1, 1, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('short))),
+        (2, 2, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('short))),
+        (2, 2, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('middle)))))
 
     )
   val grainPatterns = Map(
     'long -> line(atom(RelativeDeltaGrain('long, 0.7f, 0.3f, WELCH)), constant(RelativeDeltaGrain('long, 0.5f, 0.7f, SINE))),
     'middle -> constant(RelativeDeltaGrain('middle, 0.6f, 0.5f, SINE)),
-    'short -> constant(RelativeDeltaGrain('short, 0.5f, 0.1f, EXPONENTIAL)))
+    'short -> constant(RelativeDeltaGrain('short, 0.5f, 0.1f, EXPONENTIAL)),
+    'longsoft -> constant(RelativeDeltaGrain('longsoft, 0.005f, 0.5f, WELCH)))
 
   val grainGestureBuilder = GrainGestureBuilder(grainGridPattern, gestureTimePattern, grainPatterns)
+
+
+  val longGrainGridPattern = constant(
+    relativeScaledTime(
+      (21, 13, timeAtom)
+    )
+  )
+
+  val longGestureTimePattern =
+    constant(
+      relativeScaledTime(
+        (21, 21, TimeItemDurationBuilder(RelativeDuration(5.0f), Some('longsoft))),
+        (13, 13, TimeItemDurationBuilder(AbsoluteDuration(0.001f), Some('short)))
+      )
+    )
+
+  val longGrainGestureBuilder = GrainGestureBuilder(longGrainGridPattern, longGestureTimePattern, grainPatterns)
 
   val topActor = withActor(TimeItemBuilderActor(constant(builder))) {
     _.listen(TimeItemSplitterActor())
       .listen(TimeItemBuilderActor(subPattern))
       .listen(TimeItemsTransformerActor(PatternTimeItemTransformer(transformPattern)))
-      .listen(MusicItemMaker(frequencyFilterBuilderPattern, positionItemPatterns, gestureItemPatterns, grainGestureBuilder))
+      .listen(MusicItemMaker(frequencyFilterBuilderPattern, positionItemPatterns, gestureItemPatterns, List(grainGestureBuilder, longGrainGestureBuilder)))
       .listen(musicChannelMaker)
       .listen(musicChannelPlayer)
   }
