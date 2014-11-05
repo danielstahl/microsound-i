@@ -173,7 +173,7 @@ object Piece {
 
   val playGrains = true
 
-  val musicChannelPlayer = MusicChannelPlayer(Music.player, 21, /*Some(List(2,3,4,5))*/None, playGrains)
+  val musicChannelPlayer = MusicChannelPlayer(Music.player, 21, /*Some(List(2,3,4,5))*/ None, playGrains)
 
   val positionItemPatterns: PatternItem[PatternItem[PositionItem]] = cycle(
     atom(palindrome(Elide.BOTH, atom(PositionItem(-1f, -0.9f)), atom(PositionItem(-0.9f, -0.8f)), atom(PositionItem(-0.8f, -0.7f)), atom(PositionItem(-0.7f, -0.6f)))),
@@ -233,7 +233,7 @@ object Piece {
       (1, 1, timeAtom),
       (1, 1, timeAtom),
       (3, 3, timeAtom)
-      )),
+    )),
 
     atom(relativeScaledTime(
       (2, 2, timeAtom),
@@ -280,23 +280,36 @@ object Piece {
     'long -> line(atom(RelativeDeltaGrain('long, 0.7f, 0.3f, WELCH)), constant(RelativeDeltaGrain('long, 0.5f, 0.7f, SINE))),
     'middle -> constant(RelativeDeltaGrain('middle, 0.6f, 0.5f, SINE)),
     'short -> constant(RelativeDeltaGrain('short, 0.5f, 0.1f, EXPONENTIAL)),
-    'longsoft -> constant(RelativeDeltaGrain('longsoft, 0.005f, 0.5f, WELCH)))
+    'longsoft ->
+      line(
+        atom(RelativeDeltaGrain('longsoft, 0.004f, 0.7f, WELCH)),
+        atom(RelativeDeltaGrain('longsoft, 0.005f, 0.5f, WELCH)),
+        atom(RelativeDeltaGrain('longsoft, 0.004f, 0.3f, WELCH))
+      ))
 
   val grainGestureBuilder = GrainGestureBuilder(grainGridPattern, gestureTimePattern, grainPatterns)
 
 
-  val longGrainGridPattern = constant(
-    relativeScaledTime(
-      (21, 13, timeAtom)
-    )
+  val longGrainGridPattern = line(
+    atom(relativeScaledTime((21, 21, timeAtom), (13, 13, timeAtom))),
+    atom(relativeScaledTime((1, 1, timeAtom), (1, 1, timeAtom))),
+    atom(relativeScaledTime((13, 13, timeAtom), (21, 21, timeAtom)))
   )
 
   val longGestureTimePattern =
-    constant(
-      relativeScaledTime(
-        (21, 21, TimeItemDurationBuilder(RelativeDuration(5.0f), Some('longsoft))),
-        (13, 13, TimeItemDurationBuilder(AbsoluteDuration(0.001f), Some('short)))
-      )
+    line(
+      atom(relativeScaledTime(
+          (21, 21, TimeItemDurationBuilder(RelativeDuration(1.6f), Some('longsoft))),
+          (13, 13, TimeItemDurationBuilder(AbsoluteDuration(0.001f), Some('short)))
+        )),
+      atom(relativeScaledTime(
+        (1, 1, TimeItemDurationBuilder(RelativeDuration(0.001f), Some('short))),
+        (1, 1, TimeItemDurationBuilder(RelativeDuration(2f), Some('longsoft)))
+      )),
+      atom(relativeScaledTime(
+        (13, 13, TimeItemDurationBuilder(RelativeDuration(0.001f), Some('short))),
+        (21, 21, TimeItemDurationBuilder(RelativeDuration(1.6f), Some('longsoft)))
+      ))
     )
 
   val longGrainGestureBuilder = GrainGestureBuilder(longGrainGridPattern, longGestureTimePattern, grainPatterns)
@@ -309,7 +322,6 @@ object Piece {
       .listen(musicChannelMaker)
       .listen(musicChannelPlayer)
   }
-
 
 
   def main(args: Array[String]) {
@@ -325,8 +337,6 @@ object Piece {
 
     topActor.tell(totalDuration)
   }
-
-
 
 
 }
@@ -347,9 +357,9 @@ sealed trait LNote {
   def makeFrequencyFilters(startFreqs: Seq[Float], endFreqs: Seq[Float], startBws: Seq[Float], endBws: Seq[Float]) = {
     val (_, _, _, _, result) =
       startFreqs.foldLeft((startFreqs, endFreqs, startBws, endBws, List[FrequencyFilter]())) {
-      case ((sfs, efs, sbs, ebs, tmp), _) =>
-        (sfs.tail, efs.tail, sbs.tail, ebs.tail, tmp ::: List(FrequencyFilter(sfs.head, efs.head, sbs.head, ebs.head)))
-    }
+        case ((sfs, efs, sbs, ebs, tmp), _) =>
+          (sfs.tail, efs.tail, sbs.tail, ebs.tail, tmp ::: List(FrequencyFilter(sfs.head, efs.head, sbs.head, ebs.head)))
+      }
     result
   }
 }
@@ -357,8 +367,8 @@ sealed trait LNote {
 object Noise1 extends LNote {
   val freq: FrequencyFilterChord =
     chord(InvertedSpektrum4,
-        Harmony(HARMON).octave(2).chord(1, 7, 15, 18),
-        Harmony(HARMON).octave(2).chord(1, 6, 12, 19),
-        Bandwith(2, 2, 2, 2),
-        Bandwith(0, 0, 0, 0))
+      Harmony(HARMON).octave(2).chord(1, 7, 15, 18),
+      Harmony(HARMON).octave(2).chord(1, 6, 12, 19),
+      Bandwith(2, 2, 2, 2),
+      Bandwith(0, 0, 0, 0))
 }
