@@ -224,8 +224,8 @@ object Piece {
     )
 
 
-  val grainGridPattern = constant(
-    relativeScaledTime(
+  val grainGridPattern = cycle(
+    atom(relativeScaledTime(
       (1, 1, timeAtom),
       (2, 2, timeAtom),
       (3, 3, timeAtom),
@@ -234,23 +234,53 @@ object Piece {
       (1, 1, timeAtom),
       (1, 1, timeAtom),
       (3, 3, timeAtom)
-      ))
+      )),
+
+    atom(relativeScaledTime(
+      (2, 2, timeAtom),
+      (2, 2, timeAtom),
+      (21, 21, timeAtom),
+      (1, 1, timeAtom),
+      (1, 1, timeAtom),
+      (8, 8, timeAtom),
+      (5, 5, timeAtom),
+      (13, 13, timeAtom),
+      (1, 1, timeAtom),
+      (1, 1, timeAtom),
+      (3, 3, timeAtom),
+      (3, 3, timeAtom),
+      (2, 2, timeAtom),
+      (1, 1, timeAtom)
+    ))
+
+  )
 
   val gestureTimePattern =
-    constant(
-      relativeScaledTime(
-        (5, 5, TimeItemDurationBuilder(RelativeDuration(0.1f), Some('long))),
+    cycle(
+      atom(relativeScaledTime(
+        (5, 5, TimeItemDurationBuilder(RelativeDuration(0.06f), Some('long))),
         (3, 3, TimeItemDurationBuilder(AbsouluteDuration(0.001f), Some('middle))),
-        (5, 5, TimeItemDurationBuilder(RelativeDuration(0.2f), Some('middle))),
+        (5, 5, TimeItemDurationBuilder(RelativeDuration(0.04f), Some('middle))),
         (1, 1, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle))),
-        (1, 1, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle))),
-        (2, 2, TimeItemDurationBuilder(AbsouluteDuration(0.001f), Some('middle)))
+        (1, 1, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('short))),
+        (2, 2, TimeItemDurationBuilder(AbsouluteDuration(0.001f), Some('middle))))),
 
-        ))
+      atom(relativeScaledTime(
+        (13, 13, TimeItemDurationBuilder(RelativeDuration(0.05f), Some('long))),
+        (1, 1, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle))),
+        (2, 2, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('short))),
+        (3, 3, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle))),
+        (21, 21, TimeItemDurationBuilder(RelativeDuration(0.05f), Some('long))),
+        (3, 3, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle))),
+        (1, 1, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('short))),
+        (2, 2, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('short))),
+        (2, 2, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle)))))
+
+    )
   val grainPatterns = Map(
-    'long -> constant(RelativeDeltaGrain('long, 0.5f, 0.3f, SINE)),
-    'middle -> constant(RelativeDeltaGrain('middle, 0.7f, 0.33f, EXPONENTIAL)),
-    'short -> constant(RelativeDeltaGrain('short, 0.4f, 0.1f, EXPONENTIAL)))
+    'long -> line(atom(RelativeDeltaGrain('long, 0.7f, 0.3f, WELCH)), constant(RelativeDeltaGrain('long, 0.5f, 0.7f, SINE))),
+    'middle -> constant(RelativeDeltaGrain('middle, 0.6f, 0.5f, SINE)),
+    'short -> constant(RelativeDeltaGrain('short, 0.5f, 0.1f, EXPONENTIAL)))
 
   val grainGestureBuilder = GrainGestureBuilder(grainGridPattern, gestureTimePattern, grainPatterns)
 

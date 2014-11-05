@@ -35,6 +35,3 @@ s.makeGui;
 s.scope;
 s.peakCPU;
 
-
-
-
