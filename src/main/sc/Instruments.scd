@@ -31,6 +31,10 @@ Env([0.001, 1, 0.001], [0.5], [\exp, \exp]).plot(name: "exp exp");
 Env([0.001, 1, 0.001], [0.5], [\wel, \wel]).plot(name: "wel wel");
 Env([0.001, 1, 0.001], [0.5], [\sqr, \sqr]).plot(name: "sqr sqr");
 Env([0.001, 1, 0.001], [0.5], [\cub, \cub]).plot(name: "cub cub");
+{ BrownNoise.ar(0.5) }.play;
+{ WhiteNoise.ar(0.5) }.play;
+{ PinkNoise.ar(0.8) }.play;
+{ GrayNoise.ar(0.5) }.play;
 
 
 // First comes the instruments
@@ -155,6 +159,8 @@ Env([0.001, 1, 0.001], [0.5], [\cub, \cub]).plot(name: "cub cub");
 		env = EnvGen.kr(Env([0.00001,amp,0.00001],[(attackTime * dur),
 			((1 - attackTime) * dur)], [attackCurve, decayCurve]), doneAction:2);
 		noise = WhiteNoise.ar(env);
+	    //noise = PinkNoise.ar(env);
+	    //noise = BrownNoise.ar(env);
 		filt = noise;
 
 		freqenv = EnvGen.kr(Env([startFreqs[0], endFreqs[0]], [dur]));
