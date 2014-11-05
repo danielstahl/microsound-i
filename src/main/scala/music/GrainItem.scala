@@ -31,7 +31,7 @@ case class RelativeDeltaGrain(noteClass: Symbol, amplitude: Float, attackTime: F
  * The start is the startTime. The delta, duration, attackTime is all relative to
  * the start time.
  */
-case class AbsoluteGrain(start: Float, delta: Float, duration: Float, amplitude: Float, attackTime: Float, curve: EnvCurve)
+case class AbsoluteGrain(var start: Float, delta: Float, duration: Float, amplitude: Float, attackTime: Float, curve: EnvCurve)
 
 /**
  * This builder builds a gesture with grains. The time is taken from a
