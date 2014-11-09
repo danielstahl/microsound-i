@@ -185,17 +185,17 @@ object Piece {
 
   val gestureItemPatterns: PatternItem[PatternItem[GestureItem]] = cycle(
     atom(palindrome(Elide.BOTH,
-      atom(GestureItem(0.02f, SOFT_INVPHI_TIME.value, LINEAR, LINEAR)),
-      atom(GestureItem(0.04f, HALF_TIME.value, SINE, SINE)),
-      atom(GestureItem(0.06f, SHARP_INVPHI_TIME.value, WELCH, WELCH))
+      atom(GestureItem(0.14f, SOFT_INVPHI_TIME.value, LINEAR, LINEAR)),
+      atom(GestureItem(0.16f, HALF_TIME.value, SINE, SINE)),
+      atom(GestureItem(0.18f, SHARP_INVPHI_TIME.value, WELCH, WELCH))
     )),
 
     atom(cycle(
-      atom(GestureItem(0.04f, SOFT_INVPHI_TIME.value, WELCH, WELCH)),
-      atom(GestureItem(0.06f, HALF_TIME.value, SINE, SINE)),
-      atom(GestureItem(0.02f, SOFT_INVPHI_TIME.value, SINE, SINE)),
-      atom(GestureItem(0.02f, SHARP_INVPHI_TIME.value, LINEAR, LINEAR)),
-      atom(GestureItem(0.04f, HALF_TIME.value, WELCH, WELCH))
+      atom(GestureItem(0.16f, SOFT_INVPHI_TIME.value, WELCH, WELCH)),
+      atom(GestureItem(0.18f, HALF_TIME.value, SINE, SINE)),
+      atom(GestureItem(0.16f, SOFT_INVPHI_TIME.value, SINE, SINE)),
+      atom(GestureItem(0.16f, SHARP_INVPHI_TIME.value, LINEAR, LINEAR)),
+      atom(GestureItem(0.18f, HALF_TIME.value, WELCH, WELCH))
     ))
   )
 
@@ -277,14 +277,14 @@ object Piece {
 
     )
   val grainPatterns = Map(
-    'long -> line(atom(RelativeDeltaGrain('long, 0.7f, 0.3f, WELCH)), constant(RelativeDeltaGrain('long, 0.5f, 0.7f, SINE))),
-    'middle -> constant(RelativeDeltaGrain('middle, 0.6f, 0.5f, SINE)),
-    'short -> constant(RelativeDeltaGrain('short, 0.5f, 0.1f, EXPONENTIAL)),
+    'long -> line(atom(RelativeDeltaGrain('long, 1.5f, 0.3f, WELCH)), constant(RelativeDeltaGrain('long, 1.3f, 0.7f, SINE))),
+    'middle -> constant(RelativeDeltaGrain('middle, 1.4f, 0.5f, SINE)),
+    'short -> constant(RelativeDeltaGrain('short, 1.3f, 0.1f, EXPONENTIAL)),
     'longsoft ->
       line(
-        atom(RelativeDeltaGrain('longsoft, 0.004f, 0.7f, WELCH)),
-        atom(RelativeDeltaGrain('longsoft, 0.005f, 0.5f, WELCH)),
-        atom(RelativeDeltaGrain('longsoft, 0.004f, 0.3f, WELCH))
+        atom(RelativeDeltaGrain('longsoft, 0.014f, 0.7f, WELCH)),
+        atom(RelativeDeltaGrain('longsoft, 0.015f, 0.5f, WELCH)),
+        atom(RelativeDeltaGrain('longsoft, 0.014f, 0.3f, WELCH))
       ))
 
   val grainGestureBuilder = GrainGestureBuilder(grainGridPattern, gestureTimePattern, grainPatterns)
