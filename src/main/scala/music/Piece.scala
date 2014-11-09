@@ -173,7 +173,7 @@ object Piece {
 
   val playGrains = true
 
-  val musicChannelPlayer = MusicChannelPlayer(Music.player, 21, /*Some(List(2,3,4,5))*/None, playGrains)
+  val musicChannelPlayer = MusicChannelPlayer(Music.player, 21, /*Some(List(2,3,4,5))*/ None, playGrains)
 
   val positionItemPatterns: PatternItem[PatternItem[PositionItem]] = cycle(
     atom(palindrome(Elide.BOTH, atom(PositionItem(-1f, -0.9f)), atom(PositionItem(-0.9f, -0.8f)), atom(PositionItem(-0.8f, -0.7f)), atom(PositionItem(-0.7f, -0.6f)))),
@@ -223,7 +223,6 @@ object Piece {
       atom(PulseTransformer(5))
     )
 
-
   val grainGridPattern = cycle(
     atom(relativeScaledTime(
       (1, 1, timeAtom),
@@ -234,7 +233,7 @@ object Piece {
       (1, 1, timeAtom),
       (1, 1, timeAtom),
       (3, 3, timeAtom)
-      )),
+    )),
 
     atom(relativeScaledTime(
       (2, 2, timeAtom),
@@ -259,40 +258,70 @@ object Piece {
     cycle(
       atom(relativeScaledTime(
         (5, 5, TimeItemDurationBuilder(RelativeDuration(0.06f), Some('long))),
-        (3, 3, TimeItemDurationBuilder(AbsouluteDuration(0.001f), Some('middle))),
+        (3, 3, TimeItemDurationBuilder(AbsoluteDuration(0.001f), Some('middle))),
         (5, 5, TimeItemDurationBuilder(RelativeDuration(0.04f), Some('middle))),
-        (1, 1, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle))),
-        (1, 1, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('short))),
-        (2, 2, TimeItemDurationBuilder(AbsouluteDuration(0.001f), Some('middle))))),
+        (1, 1, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('middle))),
+        (1, 1, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('short))),
+        (2, 2, TimeItemDurationBuilder(AbsoluteDuration(0.001f), Some('middle))))),
 
       atom(relativeScaledTime(
         (13, 13, TimeItemDurationBuilder(RelativeDuration(0.05f), Some('long))),
-        (1, 1, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle))),
-        (2, 2, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('short))),
-        (3, 3, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle))),
+        (1, 1, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('middle))),
+        (2, 2, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('short))),
+        (3, 3, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('middle))),
         (21, 21, TimeItemDurationBuilder(RelativeDuration(0.05f), Some('long))),
-        (3, 3, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle))),
-        (1, 1, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('short))),
-        (2, 2, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('short))),
-        (2, 2, TimeItemDurationBuilder(AbsouluteDuration(0.0001f), Some('middle)))))
+        (3, 3, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('middle))),
+        (1, 1, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('short))),
+        (2, 2, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('short))),
+        (2, 2, TimeItemDurationBuilder(AbsoluteDuration(0.0001f), Some('middle)))))
 
     )
   val grainPatterns = Map(
     'long -> line(atom(RelativeDeltaGrain('long, 0.7f, 0.3f, WELCH)), constant(RelativeDeltaGrain('long, 0.5f, 0.7f, SINE))),
     'middle -> constant(RelativeDeltaGrain('middle, 0.6f, 0.5f, SINE)),
-    'short -> constant(RelativeDeltaGrain('short, 0.5f, 0.1f, EXPONENTIAL)))
+    'short -> constant(RelativeDeltaGrain('short, 0.5f, 0.1f, EXPONENTIAL)),
+    'longsoft ->
+      line(
+        atom(RelativeDeltaGrain('longsoft, 0.004f, 0.7f, WELCH)),
+        atom(RelativeDeltaGrain('longsoft, 0.005f, 0.5f, WELCH)),
+        atom(RelativeDeltaGrain('longsoft, 0.004f, 0.3f, WELCH))
+      ))
 
   val grainGestureBuilder = GrainGestureBuilder(grainGridPattern, gestureTimePattern, grainPatterns)
+
+
+  val longGrainGridPattern = line(
+    atom(relativeScaledTime((21, 21, timeAtom), (13, 13, timeAtom))),
+    atom(relativeScaledTime((1, 1, timeAtom), (1, 1, timeAtom))),
+    atom(relativeScaledTime((13, 13, timeAtom), (21, 21, timeAtom)))
+  )
+
+  val longGestureTimePattern =
+    line(
+      atom(relativeScaledTime(
+          (21, 34, TimeItemDurationBuilder(RelativeDuration(1f), Some('longsoft))),
+          (13, 13, TimeItemDurationBuilder(AbsoluteDuration(0.001f), Some('short)))
+        )),
+      atom(relativeScaledTime(
+        (1, 1, TimeItemDurationBuilder(RelativeDuration(0.001f), Some('short))),
+        (1, 2, TimeItemDurationBuilder(RelativeDuration(1f), Some('longsoft)))
+      )),
+      atom(relativeScaledTime(
+        (13, 13, TimeItemDurationBuilder(RelativeDuration(0.001f), Some('short))),
+        (21, 34, TimeItemDurationBuilder(RelativeDuration(1f), Some('longsoft)))
+      ))
+    )
+
+  val longGrainGestureBuilder = GrainGestureBuilder(longGrainGridPattern, longGestureTimePattern, grainPatterns)
 
   val topActor = withActor(TimeItemBuilderActor(constant(builder))) {
     _.listen(TimeItemSplitterActor())
       .listen(TimeItemBuilderActor(subPattern))
       .listen(TimeItemsTransformerActor(PatternTimeItemTransformer(transformPattern)))
-      .listen(MusicItemMaker(frequencyFilterBuilderPattern, positionItemPatterns, gestureItemPatterns, grainGestureBuilder))
+      .listen(MusicItemMaker(frequencyFilterBuilderPattern, positionItemPatterns, gestureItemPatterns, List(grainGestureBuilder, longGrainGestureBuilder)))
       .listen(musicChannelMaker)
       .listen(musicChannelPlayer)
   }
-
 
 
   def main(args: Array[String]) {
@@ -308,8 +337,6 @@ object Piece {
 
     topActor.tell(totalDuration)
   }
-
-
 
 
 }
@@ -330,9 +357,9 @@ sealed trait LNote {
   def makeFrequencyFilters(startFreqs: Seq[Float], endFreqs: Seq[Float], startBws: Seq[Float], endBws: Seq[Float]) = {
     val (_, _, _, _, result) =
       startFreqs.foldLeft((startFreqs, endFreqs, startBws, endBws, List[FrequencyFilter]())) {
-      case ((sfs, efs, sbs, ebs, tmp), _) =>
-        (sfs.tail, efs.tail, sbs.tail, ebs.tail, tmp ::: List(FrequencyFilter(sfs.head, efs.head, sbs.head, ebs.head)))
-    }
+        case ((sfs, efs, sbs, ebs, tmp), _) =>
+          (sfs.tail, efs.tail, sbs.tail, ebs.tail, tmp ::: List(FrequencyFilter(sfs.head, efs.head, sbs.head, ebs.head)))
+      }
     result
   }
 }
@@ -340,8 +367,8 @@ sealed trait LNote {
 object Noise1 extends LNote {
   val freq: FrequencyFilterChord =
     chord(InvertedSpektrum4,
-        Harmony(HARMON).octave(2).chord(1, 7, 15, 18),
-        Harmony(HARMON).octave(2).chord(1, 6, 12, 19),
-        Bandwith(2, 2, 2, 2),
-        Bandwith(0, 0, 0, 0))
+      Harmony(HARMON).octave(2).chord(1, 7, 15, 18),
+      Harmony(HARMON).octave(2).chord(1, 6, 12, 19),
+      Bandwith(2, 2, 2, 2),
+      Bandwith(0, 0, 0, 0))
 }

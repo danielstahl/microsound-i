@@ -49,7 +49,7 @@ object TimeAtomBuilder extends TimeItemBuilder {
 
 case class TimeItemDurationBuilder(duration: Duration, noteClass: Option[Symbol] = None) extends TimeItemBuilder {
   override def buildRelativeTime(totalDelta: Float, totalDuration: Float): List[DeltaTime] = {
-    List(DeltaTime(totalDelta, duration.getAbsoulteTime(totalDuration), noteClass))
+    List(DeltaTime(totalDelta, duration.getAbsoluteTime(totalDuration), noteClass))
   }
 }
 
