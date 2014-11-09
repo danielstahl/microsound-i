@@ -35,3 +35,9 @@ s.makeGui;
 s.scope;
 s.peakCPU;
 
+//s.prepareForRecord;
+//s.record;
+//s.stopRecording;
+
+// Use DiskOut to record
+// See "http://doc.sccode.org/Classes/DiskOut.html"

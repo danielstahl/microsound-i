@@ -299,16 +299,16 @@ object Piece {
   val longGestureTimePattern =
     line(
       atom(relativeScaledTime(
-          (21, 21, TimeItemDurationBuilder(RelativeDuration(1.6f), Some('longsoft))),
+          (21, 34, TimeItemDurationBuilder(RelativeDuration(1f), Some('longsoft))),
           (13, 13, TimeItemDurationBuilder(AbsoluteDuration(0.001f), Some('short)))
         )),
       atom(relativeScaledTime(
         (1, 1, TimeItemDurationBuilder(RelativeDuration(0.001f), Some('short))),
-        (1, 1, TimeItemDurationBuilder(RelativeDuration(2f), Some('longsoft)))
+        (1, 2, TimeItemDurationBuilder(RelativeDuration(1f), Some('longsoft)))
       )),
       atom(relativeScaledTime(
         (13, 13, TimeItemDurationBuilder(RelativeDuration(0.001f), Some('short))),
-        (21, 21, TimeItemDurationBuilder(RelativeDuration(1.6f), Some('longsoft)))
+        (21, 34, TimeItemDurationBuilder(RelativeDuration(1f), Some('longsoft)))
       ))
     )
 
