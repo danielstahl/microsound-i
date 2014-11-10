@@ -169,11 +169,22 @@ object Piece {
       _.listen(frequencyFilterChordsPlayer)
     }
 
-  val musicChannelMaker = MusicChannelMaker()
+  /*
+  Synth.head(~effects, "reverb2", [\mix, 0.05, \room, 0.25, \damp, 0.5, \inbus, ~bus1]);
+Synth.tail(~effects, "reverb2", [\mix, 0.09, \room, 0.9, \damp, 0.9, \inbus, ~bus2]);
+Synth.tail(~effects, "reverb2", [\mix, 0.08, \room, 0.5, \damp, 0.5, \inbus, ~bus3]);
+Synth.tail(~effects, "reverb2", [\mix, 0.3, \room, 0.3, \damp, 0.9, \inbus, ~bus4]);
+Synth.head(~effects, "reverb2", [\mix, 0.05, \room, 0.25, \damp, 0.5, \inbus, ~bus5]);
+Synth.tail(~effects, "reverb2", [\mix, 0.09, \room, 0.9, \damp, 0.9, \inbus, ~bus6]);
+  * */
+  val effectItemPattern = constant(EffectItem(mix = 0.05f, room = 0.25f, damp = 0.5f))
+
+  val musicChannelMaker = MusicChannelMaker(effectItemPattern = effectItemPattern)
 
   val playGrains = true
+  val playEffects = true
 
-  val musicChannelPlayer = MusicChannelPlayer(Music.player, 21, /*Some(List(2,3,4,5))*/ None, playGrains)
+  val musicChannelPlayer = MusicChannelPlayer(Music.player, 21, /*Some(List(2,3,4,5))*/ None, playGrains, playEffects)
 
   val positionItemPatterns: PatternItem[PatternItem[PositionItem]] = cycle(
     atom(palindrome(Elide.BOTH, atom(PositionItem(-1f, -0.9f)), atom(PositionItem(-0.9f, -0.8f)), atom(PositionItem(-0.8f, -0.7f)), atom(PositionItem(-0.7f, -0.6f)))),

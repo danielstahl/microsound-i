@@ -30,23 +30,24 @@ case class MusicItemMaker(frequencyBuilderPattern: PatternItem[FrequencyFilterCh
   }
 }
 
-case class MusicChannel(channel: Int, musicItems: List[MusicItem])
+case class MusicChannel(channel: Int, musicItems: List[MusicItem], effectItem: EffectItem)
 
 case class MusicChannelEvent(musicChannel: MusicChannel) extends MusicEvent
 
-case class MusicChannelMaker(var listeners: MusicActorPattern = emptyActor)  extends NodeActor {
+case class MusicChannelMaker(var listeners: MusicActorPattern = emptyActor, effectItemPattern: PatternItem[EffectItem]) extends NodeActor {
   var channel = 0
+
   def receive = {
     case MusicItemsEvent(musicItems) =>
-      listeners.takeItem().tell(MusicChannelEvent(MusicChannel(channel , musicItems)))
+      listeners.takeItem().tell(MusicChannelEvent(MusicChannel(channel, musicItems, effectItemPattern.takeItem())))
       channel = channel + 1
   }
 }
 
-case class MusicChannelPlayer(player: MusicPlayer, nbrOfChannels: Int, channelsToPlay: Option[List[Int]] = None, playGrains: Boolean = false) extends LeafActor {
+case class MusicChannelPlayer(player: MusicPlayer, nbrOfChannels: Int, channelsToPlay: Option[List[Int]] = None, playGrains: Boolean = false, playEffects: Boolean = false) extends LeafActor {
   private val defaultBase = BaseArgument()
 
-  val layers = if(playGrains) Some(Layers(nbrOfChannels)) else None
+  val layers = if (playGrains) Some(Layers(nbrOfChannels)) else None
 
   def playLayers(): Unit = {
     implicit val p = player
@@ -56,21 +57,29 @@ case class MusicChannelPlayer(player: MusicPlayer, nbrOfChannels: Int, channelsT
     }
   }
 
+
+  def getMinimumTime(musicItems: List[MusicItem]): Float = {
+    musicItems.map(_.timeItem.start).min
+  }
+
   override protected def receive: PartialFunction[MusicEvent, Unit] = {
-    case MusicChannelEvent(MusicChannel(channel, musicItems)) =>
+    case MusicChannelEvent(MusicChannel(channel, musicItems, effectItem)) =>
+      if (playEffects) {
+        playEffect(effectItem, channel, getMinimumTime(musicItems))
+      }
       musicItems.foreach {
         musicItem =>
-          if(shouldPlayItem(channel)) {
+          if (shouldPlayItem(channel)) {
             updateStartDelta(musicItem, channel)
             updateStartTime(musicItem)
             playMusicItem(musicItem, channel, playGrains)
-            if(playGrains)
+            if (playGrains)
               musicItem.grainLayers.foreach {
                 grainLayer =>
                   grainLayer.foreach {
                     grain =>
                       updateStartTime(grain)
-                      playGrain(grain, channel)
+                      playGrain(grain, playEffects, channel)
                   }
               }
 
@@ -81,7 +90,7 @@ case class MusicChannelPlayer(player: MusicPlayer, nbrOfChannels: Int, channelsT
   var startDelta: Option[Float] = None
 
   def updateStartDelta(musicItem: MusicItem, channel: Int): Unit = {
-    if(channelsToPlay.isDefined && startDelta.isEmpty && channelsToPlay.exists(chns => chns.contains(channel))) {
+    if (channelsToPlay.isDefined && startDelta.isEmpty && channelsToPlay.exists(chns => chns.contains(channel))) {
       startDelta = Some(musicItem.timeItem.start)
     }
   }
@@ -96,6 +105,11 @@ case class MusicChannelPlayer(player: MusicPlayer, nbrOfChannels: Int, channelsT
     channelsToPlay.isEmpty || channelsToPlay.exists(chns => chns.contains(channel))
   }
 
+  val virtualBusStart = 16
+  def musicItemBus(channel: Int): Int = virtualBusStart + (channel * 4)
+  def grainBus(channel: Int): Int = virtualBusStart + (channel * 4) + 2
+
+
   def playMusicItem(musicItem: MusicItem, channel: Int, playGrains: Boolean) = {
 
     val baseSourceArgs =
@@ -103,13 +117,12 @@ case class MusicChannelPlayer(player: MusicPlayer, nbrOfChannels: Int, channelsT
         BaseArgument(targetNodeId = ls.getGroup(channel, GroupName.SOURCE)).arguments).
         getOrElse(defaultBase.arguments)
 
-
-    val outputArgs = if(playGrains) OutbusArgument(16 + (channel * 2)).arguments else Seq()
+    val outputArgs = if (playGrains) OutbusArgument(musicItemBus(channel)).arguments else Seq()
 
     val startTime = musicItem.timeItem.start
 
-    //println(s"Item start $startTime channel: $channel item: $musicItem")
-    println(s"Item start $startTime channel: $channel bus: ${16 + (channel * 2)}")
+    println(s"Item start $startTime channel: $channel bus: ${musicItemBus(channel)}")
+    println(s"Grains for channel $channel will play at bus ${grainBus(channel)}")
     player.sendNew(
       musicItem.chord.instrument.arguments ++
         baseSourceArgs ++
@@ -124,22 +137,41 @@ case class MusicChannelPlayer(player: MusicPlayer, nbrOfChannels: Int, channelsT
 
   val noiseGrain = NoiseGrain2
 
-  def playGrain(grain: AbsoluteGrain, channel: Int) = {
-    val patternInput = InbusArgument(16 + (channel * 2))
-    val patternOutput = OutbusArgument(0)
+  def playGrain(grain: AbsoluteGrain, playEffects: Boolean, channel: Int) = {
+    val patternInput = InbusArgument(musicItemBus(channel))
+    val patternOutput = if (playEffects) OutbusArgument(grainBus(channel)) else OutbusArgument(0)
     val baseGrainArgs = BaseArgument(targetNodeId = layers.get.getGroup(channel, GroupName.GRAIN)).arguments
 
     val startTime = grain.start
 
     player.sendNew(
       noiseGrain.arguments ++
-      baseGrainArgs ++
-      patternInput.arguments ++
-      patternOutput.arguments ++
-      AttackArgument2(Left(grain.curve.name.toString())).arguments ++
-      TimeArgument(grain.duration, grain.attackTime).arguments ++
-      AmpArgument(grain.amplitude).arguments,
-    absoluteTimeToMillis(startTime)
+        baseGrainArgs ++
+        patternInput.arguments ++
+        patternOutput.arguments ++
+        AttackArgument2(Left(grain.curve.name.toString())).arguments ++
+        TimeArgument(grain.duration, grain.attackTime).arguments ++
+        AmpArgument(grain.amplitude).arguments,
+      absoluteTimeToMillis(startTime)
+    )
+  }
+
+  val effectInstrument = Reverb
+
+  def playEffect(effectItem: EffectItem, channel: Int, startTime: Float) = {
+    println(s"Effect for channel $channel will read from bus ${grainBus(channel)}")
+    val effectInput = InbusArgument(grainBus(channel))
+    val effectOutput = OutbusArgument(0)
+    val baseEffectArgs = BaseArgument(targetNodeId = layers.get.getGroup(channel, GroupName.EFFECT)).arguments
+    val reverbArgument = ReverbArgument(effectItem.mix, effectItem.room, effectItem.damp)
+
+    player.sendNew(
+      effectInstrument.arguments ++
+        baseEffectArgs ++
+        effectInput.arguments ++
+        effectOutput.arguments ++
+        reverbArgument.arguments,
+      absoluteTimeToMillis(startTime)
     )
   }
 }
