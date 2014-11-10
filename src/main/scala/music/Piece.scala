@@ -169,22 +169,22 @@ object Piece {
       _.listen(frequencyFilterChordsPlayer)
     }
 
-  /*
-  Synth.head(~effects, "reverb2", [\mix, 0.05, \room, 0.25, \damp, 0.5, \inbus, ~bus1]);
-Synth.tail(~effects, "reverb2", [\mix, 0.09, \room, 0.9, \damp, 0.9, \inbus, ~bus2]);
-Synth.tail(~effects, "reverb2", [\mix, 0.08, \room, 0.5, \damp, 0.5, \inbus, ~bus3]);
-Synth.tail(~effects, "reverb2", [\mix, 0.3, \room, 0.3, \damp, 0.9, \inbus, ~bus4]);
-Synth.head(~effects, "reverb2", [\mix, 0.05, \room, 0.25, \damp, 0.5, \inbus, ~bus5]);
-Synth.tail(~effects, "reverb2", [\mix, 0.09, \room, 0.9, \damp, 0.9, \inbus, ~bus6]);
-  * */
-  val effectItemPattern = constant(EffectItem(mix = 0.05f, room = 0.25f, damp = 0.5f))
+  val effectItemPattern = LookupPattern(
+    Map(
+      1 -> EffectItem(mix = 0.05f, room = 0.25f, damp = 0.5f),
+      2 -> EffectItem(mix = 0.08f, room = 0.80f, damp = 0.9f),
+      3 -> EffectItem(mix = 0.08f, room = 0.5f, damp = 0.5f),
+      4 -> EffectItem(mix = 0.3f, room = 0.3f, damp = 0.9f)
+    ),
+    cycle(atom(1), atom(2), atom(3), atom(4))
+  )
 
   val musicChannelMaker = MusicChannelMaker(effectItemPattern = effectItemPattern)
 
   val playGrains = true
   val playEffects = true
 
-  val musicChannelPlayer = MusicChannelPlayer(Music.player, 21, /*Some(List(2,3,4,5))*/ None, playGrains, playEffects)
+  val musicChannelPlayer = MusicChannelPlayer(Music.player, 21, None, playGrains, playEffects)
 
   val positionItemPatterns: PatternItem[PatternItem[PositionItem]] = cycle(
     atom(palindrome(Elide.BOTH, atom(PositionItem(-1f, -0.9f)), atom(PositionItem(-0.9f, -0.8f)), atom(PositionItem(-0.8f, -0.7f)), atom(PositionItem(-0.7f, -0.6f)))),
@@ -262,7 +262,6 @@ Synth.tail(~effects, "reverb2", [\mix, 0.09, \room, 0.9, \damp, 0.9, \inbus, ~bu
       (2, 2, timeAtom),
       (1, 1, timeAtom)
     ))
-
   )
 
   val gestureTimePattern =
@@ -288,11 +287,11 @@ Synth.tail(~effects, "reverb2", [\mix, 0.09, \room, 0.9, \damp, 0.9, \inbus, ~bu
 
     )
   val grainPatterns = Map(
-    'long -> line(atom(RelativeDeltaGrain('long, 1.5f, 0.3f, WELCH)), constant(RelativeDeltaGrain('long, 1.3f, 0.7f, SINE))),
-    'middle -> constant(RelativeDeltaGrain('middle, 1.4f, 0.5f, SINE)),
-    'short -> constant(RelativeDeltaGrain('short, 1.3f, 0.1f, EXPONENTIAL)),
+    'long -> cycle(atom(RelativeDeltaGrain('long, 1.5f, 0.3f, WELCH)), constant(RelativeDeltaGrain('long, 1.3f, 0.7f, SINE))),
+    'middle -> cycle(atom(RelativeDeltaGrain('middle, 1.4f, 0.5f, SINE)), atom(RelativeDeltaGrain('middle, 1.3f, 0.7f, WELCH))),
+    'short -> cycle(atom(RelativeDeltaGrain('short, 1.3f, 0.1f, EXPONENTIAL)), atom(RelativeDeltaGrain('short, 1.2f, 0.2f, SQUARED))),
     'longsoft ->
-      line(
+      cycle(
         atom(RelativeDeltaGrain('longsoft, 0.014f, 0.7f, WELCH)),
         atom(RelativeDeltaGrain('longsoft, 0.015f, 0.5f, WELCH)),
         atom(RelativeDeltaGrain('longsoft, 0.014f, 0.3f, WELCH))
@@ -301,14 +300,14 @@ Synth.tail(~effects, "reverb2", [\mix, 0.09, \room, 0.9, \damp, 0.9, \inbus, ~bu
   val grainGestureBuilder = GrainGestureBuilder(grainGridPattern, gestureTimePattern, grainPatterns)
 
 
-  val longGrainGridPattern = line(
+  val longGrainGridPattern = cycle(
     atom(relativeScaledTime((21, 21, timeAtom), (13, 13, timeAtom))),
     atom(relativeScaledTime((1, 1, timeAtom), (1, 1, timeAtom))),
     atom(relativeScaledTime((13, 13, timeAtom), (21, 21, timeAtom)))
   )
 
   val longGestureTimePattern =
-    line(
+    cycle(
       atom(relativeScaledTime(
           (21, 34, TimeItemDurationBuilder(RelativeDuration(1f), Some('longsoft))),
           (13, 13, TimeItemDurationBuilder(AbsoluteDuration(0.001f), Some('short)))
