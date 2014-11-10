@@ -93,7 +93,10 @@ case class AmpArgument(amp: Float) extends InstrumentArgument {
 
 case class BaseArgument(synthId: Integer = -1, addAction: Integer = 0, targetNodeId: Integer = 0) extends InstrumentArgument {
   def arguments: Seq[Object] = Array(synthId, addAction, targetNodeId)
+}
 
+case class ReverbArgument(mix: Float, room: Float, damp: Float)  extends InstrumentArgument {
+  override def arguments: Seq[Object] = Array("mix", mix.asInstanceOf[AnyRef], "room", room.asInstanceOf[AnyRef], "damp", damp.asInstanceOf[AnyRef])
 }
 
 trait InstrumentName extends InstrumentArgument {
@@ -121,4 +124,8 @@ object NoiseGrain extends InstrumentName {
 
 object NoiseGrain2 extends InstrumentName {
   def instrumentName: String = "noiseGrain2"
+}
+
+object Reverb extends InstrumentName {
+  override def instrumentName: String = "reverb2"
 }

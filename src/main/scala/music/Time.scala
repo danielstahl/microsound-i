@@ -563,12 +563,6 @@ object SOFT_CURVE extends AttackCurve(Left("sine"), SOFT_INVPHI)
 
 object HALF_CURVE extends AttackCurve(Left("linear"), HALF)
 
-/*
-import music._
-import AttackCurve._
-import AttackCurveName._
-* */
-
 trait Duration {
   def getAbsoluteTime(time: Float): Float
 }
