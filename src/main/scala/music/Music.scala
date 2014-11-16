@@ -64,25 +64,15 @@ case class Layers(size: Int) extends Playable {
     }
 
   private def node(layer: Int, name: GroupName) = name match {
-    case SOURCE => 1000 + (layer * 10)
-    case GRAIN => 1000 + (layer * 10) + 1
-    case EFFECT => 1000 + (layer * 10) + 2
+    case SOURCE => 1001
+    case GRAIN => 1002
+    case EFFECT => 1003
 
   }
 
   def play()(implicit player: MusicPlayer) = {
-
-    val osc = (0 until size).flatMap {
-      l =>
-        Seq(player.makeGroupHead(0, node(l, SOURCE)),
-          player.makeGroupTail(node(l, SOURCE), node(l, GRAIN)),
-          player.makeGroupTail(node(l, GRAIN), node(l, EFFECT)))
-    }
-    val bundle = (player.makeFreeAll(0) +: osc).toArray
-    bundle.grouped(63).foreach {
-      subGroup => player.sendBundle(subGroup.toArray, 0)
-    }
-    //player.sendBundle((player.makeFreeAll(0) +: osc).toArray, 0)
+    val osc = Seq(player.makeGroupHead(1, 1001), player.makeGroupTail(1001, 1002), player.makeGroupTail(1002, 1003))
+    player.sendBundle(osc.toArray, 0)
   }
 
   def getGroup(layer: Int, group: GroupName) =
