@@ -1,11 +1,10 @@
 package music
 
 import music.MusicActor._
-import music.TimeItem._
-import java.awt.Graphics2D
 import music.Pattern._
-import music.TwoPhasePatternFrequencyFilterBuilder.{FrequencyBwsPattern, PhaseTwoPattern, PhaseOnePattern}
-import SpectrumName._
+import music.SpectrumName._
+import music.TimeItem._
+import music.TwoPhasePatternFrequencyFilterBuilder.FrequencyBwsPattern
 
 /**
  *
@@ -172,9 +171,9 @@ object Piece {
   val effectItemPattern = LookupPattern(
     Map(
       1 -> EffectItem(mix = 0.05f, room = 0.25f, damp = 0.5f),
-      2 -> EffectItem(mix = 0.08f, room = 0.80f, damp = 0.9f),
+      2 -> EffectItem(mix = 0.07f, room = 0.70f, damp = 0.8f),
       3 -> EffectItem(mix = 0.08f, room = 0.5f, damp = 0.5f),
-      4 -> EffectItem(mix = 0.3f, room = 0.3f, damp = 0.9f)
+      4 -> EffectItem(mix = 0.3f, room = 0.3f, damp = 0.8f)
     ),
     cycle(atom(1), atom(2), atom(3), atom(4))
   )
@@ -309,9 +308,9 @@ object Piece {
   val longGestureTimePattern =
     cycle(
       atom(relativeScaledTime(
-          (21, 34, TimeItemDurationBuilder(RelativeDuration(1f), Some('longsoft))),
-          (13, 13, TimeItemDurationBuilder(AbsoluteDuration(0.001f), Some('short)))
-        )),
+        (21, 34, TimeItemDurationBuilder(RelativeDuration(1f), Some('longsoft))),
+        (13, 13, TimeItemDurationBuilder(AbsoluteDuration(0.001f), Some('short)))
+      )),
       atom(relativeScaledTime(
         (1, 1, TimeItemDurationBuilder(RelativeDuration(0.001f), Some('short))),
         (1, 2, TimeItemDurationBuilder(RelativeDuration(1f), Some('longsoft)))
@@ -333,52 +332,15 @@ object Piece {
       .listen(musicChannelPlayer)
   }
 
-
-  def main(args: Array[String]) {
-    //Music.player.startPlay()
-    //plotter.show()
-    //structureActorv2.tell(totalDuration)
+  def playRealtime(): Unit = {
     Music.player.startPlay()
-
     musicChannelPlayer.playLayers()
-    //frequencyFilterBuilderActor.tell(GenerateFrequencyFilterChordEvent(10))
-    //val result = frequencyFilterBuilder.buildFrequencyChords(12)
-    //result.foreach(println(_))
-
     topActor.tell(totalDuration)
   }
 
-
-}
-
-
-import SpectrumName._
-
-sealed trait LNote {
-  val freq: FrequencyFilterChord
-
-  def chord(instrument: InstrumentName, startFreqs: Seq[Float], endFreqs: Seq[Float], startBws: Seq[Float], endBws: Seq[Float]) = {
-    FrequencyFilterChord(
-      makeFrequencyFilters(
-        startFreqs, endFreqs,
-        startBws, endBws), instrument)
-  }
-
-  def makeFrequencyFilters(startFreqs: Seq[Float], endFreqs: Seq[Float], startBws: Seq[Float], endBws: Seq[Float]) = {
-    val (_, _, _, _, result) =
-      startFreqs.foldLeft((startFreqs, endFreqs, startBws, endBws, List[FrequencyFilter]())) {
-        case ((sfs, efs, sbs, ebs, tmp), _) =>
-          (sfs.tail, efs.tail, sbs.tail, ebs.tail, tmp ::: List(FrequencyFilter(sfs.head, efs.head, sbs.head, ebs.head)))
-      }
-    result
+  def main(args: Array[String]) {
+    playRealtime()
   }
 }
 
-object Noise1 extends LNote {
-  val freq: FrequencyFilterChord =
-    chord(InvertedSpektrum4,
-      Harmony(HARMON).octave(2).chord(1, 7, 15, 18),
-      Harmony(HARMON).octave(2).chord(1, 6, 12, 19),
-      Bandwith(2, 2, 2, 2),
-      Bandwith(0, 0, 0, 0))
-}
+

@@ -1,29 +1,3 @@
-(
-f = { |msg, time, replyAddr, recvPort|
-    if(msg[0] != '/status.reply') {
-        "At time %s received message % \n".postf( time, msg)
-    }
-};
-thisProcess.addOSCRecvFunc(f);
-);
-
-OSCFunc.trace(false);
-
-// Set up the groups
-(
-Group.head(0); //1000
-Group.head(1000); //1001
-Group.head(1001); //1002
-
-
-Group.tail(0); //1003
-Group.head(1003); //1004
-Group.head(1004); //1005
-
-Group.tail(0); //1006
-Group.head(1006); //1007
-Group.head(1007); //1008
-)
 
 Env([0.001, 1, 0.001], [0.5], [\lin, \lin]).plot(name: "lin lin");
 Env([0.001, 1, 0.001], [0.5], [\sin, \sin]).plot(name: "sin sin");
@@ -31,11 +5,6 @@ Env([0.001, 1, 0.001], [0.5], [\exp, \exp]).plot(name: "exp exp");
 Env([0.001, 1, 0.001], [0.5], [\wel, \wel]).plot(name: "wel wel");
 Env([0.001, 1, 0.001], [0.5], [\sqr, \sqr]).plot(name: "sqr sqr");
 Env([0.001, 1, 0.001], [0.5], [\cub, \cub]).plot(name: "cub cub");
-{ BrownNoise.ar(0.5) }.play;
-{ WhiteNoise.ar(0.5) }.play;
-{ PinkNoise.ar(0.8) }.play;
-{ GrayNoise.ar(0.5) }.play;
-
 
 // First comes the instruments
 (
@@ -52,7 +21,6 @@ Env([0.001, 1, 0.001], [0.5], [\cub, \cub]).plot(name: "cub cub");
 		var inSignal, outSignal;
 		inSignal = In.ar(inbus, 2);
 		outSignal = FreeVerb2.ar(inSignal[0],inSignal[1],mix,room,damp);
-		//ReplaceOut.ar(out, outSignal);
 		Out.ar(outbus, outSignal);
 	}).add;
 
@@ -141,15 +109,6 @@ Env([0.001, 1, 0.001], [0.5], [\cub, \cub]).plot(name: "cub cub");
 	}).add;
 
 
-/*
-		~theList[0].postln;
-(~theList.size - 2).do({
-	arg val;
-    ~theList[(val + 1)].postln;
-});
-~theList[~theList.size - 1].postln;
-	*/
-
     SynthDef(\invertedSpektrum63, {
 		arg dur = 2, startFreqs = #[0,0,0,0,0,0], endFreqs = #[0,0,0,0,0,0], amp = 0.1, outbus,
 		startBws = #[0.000001,0.000001,0.000001,0.000001,0.000001,0.000001],
@@ -183,7 +142,6 @@ Env([0.001, 1, 0.001], [0.5], [\cub, \cub]).plot(name: "cub cub");
 	}).add;
 
 
-
 SynthDef(\noiseGrain, {
 	arg dur = 1, amp = 0.1, attackTime = 0.5, attackCurve = 0, decayCurve = 0,
 	inbus, outbus;
@@ -203,6 +161,7 @@ SynthDef(\noiseGrain2, {
 			((1 - attackTime) * dur)], attackType), doneAction:2);
 	Out.ar(outbus, inSignal * env);
 }).add;
+
 )
 
 
