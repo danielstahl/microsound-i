@@ -1,4 +1,4 @@
-name := "microsound"
+name := "microsound-i"
 
 version := "1.0"
 
