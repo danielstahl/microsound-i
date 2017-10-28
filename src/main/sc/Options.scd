@@ -20,7 +20,16 @@ s.scope;
 s.peakCPU;
 s.dumpOSC;
 
-s.recordNode;
-s.prepareForRecord;
+
+//Turn on dumpOSC
+s.dumpOSC(1);
+
+//Turn of dumpOSC
+s.dumpOSC(0);
+
+
+// Record
+
+s.prepareForRecord('/Users/danielstahl/Documents/Projects/microsound-i_mix/microsound-i_sc.aiff');
 s.record;
 s.stopRecording;

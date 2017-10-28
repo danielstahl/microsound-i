@@ -181,7 +181,7 @@ object Piece {
   val musicChannelMaker = MusicChannelMaker(effectItemPattern = effectItemPattern)
 
   val playGrains = true
-  val playEffects = true
+  val playEffects = false
 
   val musicChannelPlayer = MusicChannelPlayer(Music.player, 21, None, playGrains, playEffects)
 
